@@ -13,6 +13,7 @@ interface AttendanceCalendarProps {
   employeeInTime: string; // e.g. "09:00:00"
   employeeOutTime: string; // e.g. "18:00:00"
   employeeName?: string;
+  departmentName?: string;
   onMonthChange?: (year: number, month: number) => void;
 }
 
@@ -45,12 +46,18 @@ export default function AttendanceCalendar({
   employeeInTime,
   employeeOutTime,
   employeeName,
+  departmentName,
   onMonthChange,
 }: AttendanceCalendarProps) {
   const [selectedDay, setSelectedDay] = useState<DayInfo | null>(null);
 
   const expectedIn = parseTimeStr(employeeInTime);
   const expectedOut = parseTimeStr(employeeOutTime);
+
+  // Store department has different Sunday timings: 11:00 - 18:00
+  const isStoreDept = departmentName?.toLowerCase() === "store";
+  const sundayExpectedIn = isStoreDept ? parseTimeStr("11:00:00") : expectedIn;
+  const sundayExpectedOut = isStoreDept ? parseTimeStr("18:00:00") : expectedOut;
 
   // Build lookup maps
   const recordMap = useMemo(() => {
@@ -108,10 +115,14 @@ export default function AttendanceCalendar({
         }
       }
 
-      // Check late
-      if (isPresent && rec?.in_time) {
+      // Use Sunday times for Store department on Sundays
+      const effectiveExpectedIn = isSunday ? sundayExpectedIn : expectedIn;
+      const effectiveExpectedOut = isSunday ? sundayExpectedOut : expectedOut;
+
+      // Check late (half-day leave should not count as late)
+      if (isPresent && !isHalfDay && rec?.in_time) {
         const actualIn = extractTimeFromTimestamp(rec.in_time);
-        if (minutesDiff(actualIn, expectedIn) > 10) {
+        if (minutesDiff(actualIn, effectiveExpectedIn) > 10) {
           isLate = true;
         }
       }
@@ -119,7 +130,7 @@ export default function AttendanceCalendar({
       // Check overtime
       if (isPresent && rec?.out_time) {
         const actualOut = extractTimeFromTimestamp(rec.out_time);
-        if (minutesDiff(actualOut, expectedOut) > 30) {
+        if (minutesDiff(actualOut, effectiveExpectedOut) > 30) {
           isOvertime = true;
         }
       }
@@ -149,7 +160,7 @@ export default function AttendanceCalendar({
       } else if (isPresent) {
         status = "present";
       } else if (!rec && !isFuture) {
-        status = "absent";
+        status = "leave";
       } else {
         status = "no-record";
       }
@@ -169,7 +180,7 @@ export default function AttendanceCalendar({
     }
 
     return days;
-  }, [year, month, daysInMonth, firstDayOfWeek, recordMap, holidayMap, expectedIn, expectedOut, todayStr]);
+  }, [year, month, daysInMonth, firstDayOfWeek, recordMap, holidayMap, expectedIn, expectedOut, sundayExpectedIn, sundayExpectedOut, todayStr]);
 
   // Pad last week
   const totalCells = dayInfos.length;
@@ -181,7 +192,7 @@ export default function AttendanceCalendar({
       case "present":
         return "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200";
       case "absent":
-        return "bg-red-100 text-red-800 border-red-300 hover:bg-red-200";
+        return "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200";
       case "leave":
         return "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200";
       case "half-day":
@@ -212,7 +223,7 @@ export default function AttendanceCalendar({
   const getStatusLabel = (info: DayInfo): string => {
     switch (info.status) {
       case "present": return "P";
-      case "absent": return "A";
+      case "absent": return "L";
       case "leave": return "L";
       case "half-day": return "HD";
       case "late": return "Late";
@@ -265,8 +276,7 @@ export default function AttendanceCalendar({
     return {
       present: validDays.filter((d) => ["present", "overtime", "late-and-overtime"].includes(d.status)).length,
       late: validDays.filter((d) => d.isLate).length,
-      leave: validDays.filter((d) => d.status === "leave").length,
-      absent: validDays.filter((d) => d.status === "absent").length,
+      leave: validDays.filter((d) => d.status === "leave" || d.status === "absent").length,
       halfDay: validDays.filter((d) => d.status === "half-day").length,
       overtime: validDays.filter((d) => d.isOvertime).length,
       sundayWorked: validDays.filter((d) => d.status === "sunday-worked").length,
@@ -304,9 +314,6 @@ export default function AttendanceCalendar({
       <div className="flex flex-wrap gap-2 border-b border-slate-100 px-6 py-3 text-xs">
         <span className="rounded-full bg-emerald-100 px-2.5 py-1 font-medium text-emerald-700">
           {stats.present} Present
-        </span>
-        <span className="rounded-full bg-red-100 px-2.5 py-1 font-medium text-red-700">
-          {stats.absent} Absent
         </span>
         <span className="rounded-full bg-rose-100 px-2.5 py-1 font-medium text-rose-700">
           {stats.leave} Leave
@@ -398,7 +405,6 @@ export default function AttendanceCalendar({
       <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-200 px-6 py-4">
         {[
           { color: "bg-emerald-200", label: "Present" },
-          { color: "bg-red-200", label: "Absent" },
           { color: "bg-rose-200", label: "Leave" },
           { color: "bg-orange-200", label: "Half-Day" },
           { color: "bg-amber-200", label: "Late" },
@@ -421,6 +427,7 @@ export default function AttendanceCalendar({
           dayInfo={selectedDay}
           employeeInTime={employeeInTime}
           employeeOutTime={employeeOutTime}
+          departmentName={departmentName}
           onClose={() => setSelectedDay(null)}
         />
       )}

@@ -62,7 +62,6 @@ export interface EmployeeMetrics {
   totalSundaysWorked: number;
   totalLeaves: number;
   lateDays: number;
-  lateLeaveDeduction: number;
   overtimeMinutes: number;
   overtimeFormatted: string;
 }
@@ -115,7 +114,6 @@ export interface DepartmentSummary {
   department: Department;
   employees: MonthlyAttendanceSummary[];
   totalPresent: number;
-  totalAbsent: number;
   totalLeaves: number;
   averageLateDays: number;
 }

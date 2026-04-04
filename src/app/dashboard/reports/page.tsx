@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
-import type { Employee, AttendanceRecord } from "@/lib/types";
+import type { Employee, AttendanceRecord, Holiday } from "@/lib/types";
 import {
   calculateEmployeeMetrics,
   formatMinutes,
@@ -22,15 +22,15 @@ import {
 } from "recharts";
 import { Download, ChevronLeft, ChevronRight } from "lucide-react";
 
-type TabKey = "summary" | "late" | "overtime" | "performance";
+type TabKey = "summary" | "department" | "late" | "overtime" | "performance";
 
 interface EmployeeReport {
   employee: Employee;
   deptName: string;
   daysPresent: number;
   daysLeave: number;
+  sundaysWorked: number;
   lateDays: number;
-  lateDeduction: number;
   overtimeMinutes: number;
   overtimeFormatted: string;
   attendancePct: number;
@@ -51,28 +51,31 @@ export default function ReportsPage() {
     const endDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, "0")}-${String(endDay).padStart(2, "0")}`;
 
-    const [{ data: employees }, { data: attendance }, { data: departments }] = await Promise.all([
+    const [{ data: employees }, { data: attendance }, { data: departments }, { data: holidaysData }] = await Promise.all([
       supabase.from("employees").select("*"),
       supabase.from("attendance").select("*").gte("attendance_date", startDate).lte("attendance_date", endDate),
       supabase.from("department").select("*"),
+      supabase.from("holidays").select("*").gte("holiday_date", startDate).lte("holiday_date", endDate),
     ]);
 
     const deptMap = new Map((departments ?? []).map((d: { department_id: number; dept_name: string }) => [d.department_id, d.dept_name] as [number, string]));
     const allRecords = (attendance ?? []) as AttendanceRecord[];
+    const monthHolidays = (holidaysData ?? []) as Holiday[];
     const totalDaysInMonth = endDay;
 
     const reportData: EmployeeReport[] = ((employees ?? []) as Employee[]).map((emp) => {
       const empRecords = allRecords.filter((r) => r.employee_id === emp.employee_id);
-      const metrics = calculateEmployeeMetrics(emp, empRecords, year, month);
+      const empDeptName = (deptMap.get(emp.department_id) ?? "Unknown") as string;
+      const metrics = calculateEmployeeMetrics(emp, empRecords, year, month, empDeptName, monthHolidays);
       const attendancePct = totalDaysInMonth > 0 ? Math.round((metrics.totalWorkingDays / totalDaysInMonth) * 100) : 0;
 
       return {
         employee: emp,
-        deptName: (deptMap.get(emp.department_id) ?? "Unknown") as string,
+        deptName: empDeptName,
         daysPresent: metrics.totalWorkingDays,
         daysLeave: metrics.totalLeaves,
+        sundaysWorked: metrics.totalSundaysWorked,
         lateDays: metrics.lateDays,
-        lateDeduction: metrics.lateLeaveDeduction,
         overtimeMinutes: metrics.overtimeMinutes,
         overtimeFormatted: metrics.overtimeFormatted,
         attendancePct,
@@ -84,7 +87,7 @@ export default function ReportsPage() {
     // Daily late data
     const dailyMap: Record<string, number> = {};
     allRecords.forEach((rec) => {
-      if (rec.late_by && rec.late_by > 0) {
+      if (rec.late_by && rec.late_by > 10) {
         const d = rec.attendance_date;
         dailyMap[d] = (dailyMap[d] || 0) + 1;
       }
@@ -120,8 +123,8 @@ export default function ReportsPage() {
       Department: r.deptName,
       "Days Present": r.daysPresent,
       "Days Leave": r.daysLeave,
+      "Sundays Worked": r.sundaysWorked,
       "Late Days": r.lateDays,
-      "Late Deduction": r.lateDeduction,
       "Overtime (HH:MM)": r.overtimeFormatted,
       "Attendance %": r.attendancePct,
     }));
@@ -165,14 +168,52 @@ export default function ReportsPage() {
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "summary", label: "Monthly Summary" },
+    { key: "department", label: "Department Report" },
     { key: "late", label: "Late Trends" },
     { key: "overtime", label: "Overtime Trends" },
     { key: "performance", label: "Employee Performance" },
   ];
 
+  // Department-wise aggregated data
+  const departmentReports = (() => {
+    const deptGroupMap: Record<string, EmployeeReport[]> = {};
+    reports.forEach((r) => {
+      if (!deptGroupMap[r.deptName]) deptGroupMap[r.deptName] = [];
+      deptGroupMap[r.deptName].push(r);
+    });
+    return Object.entries(deptGroupMap).map(([deptName, emps]) => {
+      const totalPresent = emps.reduce((s, r) => s + r.daysPresent, 0);
+      const totalLeave = emps.reduce((s, r) => s + r.daysLeave, 0);
+      const totalSundaysWorked = emps.reduce((s, r) => s + r.sundaysWorked, 0);
+      const totalLate = emps.reduce((s, r) => s + r.lateDays, 0);
+      const totalOT = emps.reduce((s, r) => s + r.overtimeMinutes, 0);
+      const avgAtt = emps.length > 0 ? Math.round(emps.reduce((s, r) => s + r.attendancePct, 0) / emps.length) : 0;
+      return {
+        deptName,
+        employeeCount: emps.length,
+        totalPresent,
+        totalLeave,
+        totalSundaysWorked,
+        totalLate,
+        totalOvertimeMinutes: totalOT,
+        totalOvertimeFormatted: formatMinutes(totalOT),
+        avgAttendance: avgAtt,
+        employees: emps,
+      };
+    }).sort((a, b) => a.deptName.localeCompare(b.deptName));
+  })();
+
+  const deptComparisonData = departmentReports.map((d) => ({
+    department: d.deptName,
+    "Avg Attendance %": d.avgAttendance,
+    "Total Leave": d.totalLeave,
+    "Total Late": d.totalLate,
+  }));
+
   // Summary stats
   const totalPresent = reports.reduce((s, r) => s + r.daysPresent, 0);
   const totalLeaves = reports.reduce((s, r) => s + r.daysLeave, 0);
+  const totalSundaysWorked = reports.reduce((s, r) => s + r.sundaysWorked, 0);
   const totalOvertimeHrs = Math.round(reports.reduce((s, r) => s + r.overtimeMinutes, 0) / 60 * 10) / 10;
   const avgAttendance = reports.length > 0 ? Math.round(reports.reduce((s, r) => s + r.attendancePct, 0) / reports.length) : 0;
 
@@ -223,7 +264,7 @@ export default function ReportsPage() {
           {/* Monthly Summary */}
           {activeTab === "summary" && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                   <p className="text-xs font-medium text-slate-500">Total Present Days</p>
                   <p className="mt-1 text-2xl font-bold text-green-700">{totalPresent}</p>
@@ -235,6 +276,10 @@ export default function ReportsPage() {
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                   <p className="text-xs font-medium text-slate-500">Total Leaves</p>
                   <p className="mt-1 text-2xl font-bold text-red-700">{totalLeaves}</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-xs font-medium text-slate-500">Sundays Worked</p>
+                  <p className="mt-1 text-2xl font-bold text-purple-700">{totalSundaysWorked}</p>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                   <p className="text-xs font-medium text-slate-500">Total Overtime</p>
@@ -250,8 +295,8 @@ export default function ReportsPage() {
                       <th className="px-4 py-3 font-medium">Department</th>
                       <th className="px-4 py-3 font-medium">Present</th>
                       <th className="px-4 py-3 font-medium">Leave</th>
+                      <th className="px-4 py-3 font-medium">Sun Worked</th>
                       <th className="px-4 py-3 font-medium">Late Days</th>
-                      <th className="px-4 py-3 font-medium">Late Deduction</th>
                       <th className="px-4 py-3 font-medium">Overtime</th>
                       <th className="px-4 py-3 font-medium">Attendance %</th>
                     </tr>
@@ -263,11 +308,9 @@ export default function ReportsPage() {
                         <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
                         <td className="px-4 py-3 text-green-700 font-medium">{r.daysPresent}</td>
                         <td className="px-4 py-3 text-red-600">{r.daysLeave}</td>
+                        <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
                         <td className="px-4 py-3">
                           {r.lateDays > 0 ? <span className="text-amber-600 font-medium">{r.lateDays}</span> : "0"}
-                        </td>
-                        <td className="px-4 py-3">
-                          {r.lateDeduction > 0 ? <span className="text-red-600 font-medium">-{r.lateDeduction}</span> : "0"}
                         </td>
                         <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
                         <td className="px-4 py-3">
@@ -284,6 +327,118 @@ export default function ReportsPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Department Report */}
+          {activeTab === "department" && (
+            <div className="space-y-6">
+              {/* Department comparison chart */}
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-4 text-lg font-semibold text-slate-900">Department Comparison</h3>
+                {deptComparisonData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={deptComparisonData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="department" tick={{ fontSize: 12 }} angle={-20} textAnchor="end" height={60} />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="Avg Attendance %" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Total Leave" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Total Late" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="py-12 text-center text-slate-400">No data available</p>
+                )}
+              </div>
+
+              {/* Department summary cards */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {departmentReports.map((dept) => (
+                  <div key={dept.deptName} className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 px-5 py-4">
+                      <h4 className="text-lg font-semibold text-slate-900">{dept.deptName}</h4>
+                      <p className="text-xs text-slate-500">{dept.employeeCount} employees</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 p-4">
+                      <div className="rounded-lg bg-green-50 p-3">
+                        <p className="text-xs font-medium text-green-600">Avg Attendance</p>
+                        <p className="text-lg font-bold text-green-700">{dept.avgAttendance}%</p>
+                      </div>
+                      <div className="rounded-lg bg-emerald-50 p-3">
+                        <p className="text-xs font-medium text-emerald-600">Total Present</p>
+                        <p className="text-lg font-bold text-emerald-700">{dept.totalPresent}</p>
+                      </div>
+                      <div className="rounded-lg bg-rose-50 p-3">
+                        <p className="text-xs font-medium text-rose-600">Total Leave</p>
+                        <p className="text-lg font-bold text-rose-700">{dept.totalLeave}</p>
+                      </div>
+                      <div className="rounded-lg bg-purple-50 p-3">
+                        <p className="text-xs font-medium text-purple-600">Sun Worked</p>
+                        <p className="text-lg font-bold text-purple-700">{dept.totalSundaysWorked}</p>
+                      </div>
+                      <div className="rounded-lg bg-amber-50 p-3">
+                        <p className="text-xs font-medium text-amber-600">Total Late</p>
+                        <p className="text-lg font-bold text-amber-700">{dept.totalLate}</p>
+                      </div>
+                      <div className="rounded-lg bg-blue-50 p-3">
+                        <p className="text-xs font-medium text-blue-600">Overtime</p>
+                        <p className="text-lg font-bold text-blue-700">{dept.totalOvertimeFormatted}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Per-department employee tables */}
+              {departmentReports.map((dept) => (
+                <div key={dept.deptName} className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <div className="border-b border-slate-200 px-6 py-4">
+                    <h3 className="text-lg font-semibold text-slate-900">{dept.deptName}</h3>
+                    <p className="text-xs text-slate-500">{dept.employeeCount} employees &middot; Avg Attendance: {dept.avgAttendance}%</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
+                          <th className="px-4 py-3 font-medium">Employee</th>
+                          <th className="px-4 py-3 font-medium">Present</th>
+                          <th className="px-4 py-3 font-medium">Leave</th>
+                          <th className="px-4 py-3 font-medium">Sun Worked</th>
+                          <th className="px-4 py-3 font-medium">Late Days</th>
+                          <th className="px-4 py-3 font-medium">Overtime</th>
+                          <th className="px-4 py-3 font-medium">Attendance %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dept.employees.map((r) => (
+                          <tr key={r.employee.employee_id} className="border-b border-slate-100 hover:bg-slate-50">
+                            <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
+                            <td className="px-4 py-3 text-green-700 font-medium">{r.daysPresent}</td>
+                            <td className="px-4 py-3 text-red-600">{r.daysLeave}</td>
+                            <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
+                            <td className="px-4 py-3">
+                              {r.lateDays > 0 ? <span className="text-amber-600 font-medium">{r.lateDays}</span> : "0"}
+                            </td>
+                            <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                                r.attendancePct >= 80 ? "bg-green-100 text-green-700" :
+                                r.attendancePct >= 60 ? "bg-amber-100 text-amber-700" :
+                                "bg-red-100 text-red-700"
+                              }`}>
+                                {r.attendancePct}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -324,38 +479,6 @@ export default function ReportsPage() {
                 )}
               </div>
 
-              {/* Employees with >2 late days */}
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-200 px-6 py-4">
-                  <h3 className="text-lg font-semibold text-slate-900">Employees with Late Deduction (&gt;2 late days)</h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
-                        <th className="px-4 py-3 font-medium">Employee</th>
-                        <th className="px-4 py-3 font-medium">Department</th>
-                        <th className="px-4 py-3 font-medium">Late Days</th>
-                        <th className="px-4 py-3 font-medium">Leave Deduction</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {reports.filter((r) => r.lateDays > 2).length === 0 ? (
-                        <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">No employees with &gt;2 late days</td></tr>
-                      ) : (
-                        reports.filter((r) => r.lateDays > 2).map((r) => (
-                          <tr key={r.employee.employee_id} className="border-b border-slate-100 hover:bg-slate-50">
-                            <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
-                            <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
-                            <td className="px-4 py-3 text-amber-600 font-medium">{r.lateDays}</td>
-                            <td className="px-4 py-3 text-red-600 font-bold">-{r.lateDeduction} leaves</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </div>
           )}
 

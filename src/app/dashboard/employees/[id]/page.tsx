@@ -96,7 +96,7 @@ export default function EmployeeDetailPage() {
   };
 
   const metrics = employee
-    ? calculateEmployeeMetrics(employee as unknown as Employee, records, year, month)
+    ? calculateEmployeeMetrics(employee as unknown as Employee, records, year, month, employee.department?.dept_name ?? undefined, holidays)
     : null;
 
   const openEditAttendance = (rec: AttendanceRecord) => {
@@ -201,7 +201,7 @@ export default function EmployeeDetailPage() {
 
       {/* Metrics Cards */}
       {metrics && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-green-600">
               <CalendarDays className="h-5 w-5" />
@@ -229,17 +229,6 @@ export default function EmployeeDetailPage() {
               <span className="text-xs font-medium">Late Days</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.lateDays}</p>
-            {metrics.lateLeaveDeduction > 0 && (
-              <p className="mt-1 text-xs text-red-500">-{metrics.lateLeaveDeduction} leave deducted</p>
-            )}
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-red-500">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="text-xs font-medium">Late Deduction</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.lateLeaveDeduction}</p>
-            <p className="text-xs text-slate-500">leaves</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-blue-600">
@@ -261,6 +250,7 @@ export default function EmployeeDetailPage() {
         employeeInTime={employee.in_time ?? "09:00:00"}
         employeeOutTime={employee.out_time ?? "18:00:00"}
         employeeName={employee.employee_name}
+        departmentName={employee.department?.dept_name ?? undefined}
         onMonthChange={handleMonthChange}
       />
 

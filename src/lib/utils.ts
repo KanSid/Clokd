@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import type { AttendanceRecord, Employee, EmployeeMetrics } from "./types";
+import type { AttendanceRecord, Employee, EmployeeMetrics, Holiday } from "./types";
 
 /**
  * Converts total minutes into HH:MM format.
@@ -92,15 +92,23 @@ function timeToMinutes(timeStr: string): number {
  */
 export function calculateLateDays(
   employeeInTime: string,
-  attendanceRecords: AttendanceRecord[]
+  attendanceRecords: AttendanceRecord[],
+  departmentName?: string
 ): number {
   const expectedMinutes = timeToMinutes(employeeInTime);
+  // Store department has different Sunday timings: 11:00 - 18:00
+  const isStoreDept = departmentName?.toLowerCase() === "store";
+  const sundayExpectedMinutes = isStoreDept ? timeToMinutes("11:00:00") : expectedMinutes;
   let count = 0;
 
   for (const record of attendanceRecords) {
     if (!record.in_time || record.is_on_leave) continue;
+    // Half-day leave should not count as late
+    if (record.present === 0.5 || (record.duration !== null && record.duration > 0 && record.duration < 240)) continue;
+    const isSunday = new Date(record.attendance_date + "T00:00:00").getDay() === 0;
+    const effectiveExpected = isSunday ? sundayExpectedMinutes : expectedMinutes;
     const actualMinutes = timeToMinutes(record.in_time);
-    if (actualMinutes - expectedMinutes > 10) {
+    if (actualMinutes - effectiveExpected > 10) {
       count++;
     }
   }
@@ -108,14 +116,6 @@ export function calculateLateDays(
   return count;
 }
 
-/**
- * Calculates late leave deduction.
- * If an employee has more than 2 late days, each late day = 0.5 leave deduction.
- */
-export function calculateLateLeaveDeduction(lateDays: number): number {
-  if (lateDays <= 2) return 0;
-  return lateDays * 0.5;
-}
 
 /**
  * Calculates total overtime in minutes.
@@ -124,15 +124,21 @@ export function calculateLateLeaveDeduction(lateDays: number): number {
  */
 export function calculateOvertime(
   employeeOutTime: string,
-  attendanceRecords: AttendanceRecord[]
+  attendanceRecords: AttendanceRecord[],
+  departmentName?: string
 ): number {
   const expectedMinutes = timeToMinutes(employeeOutTime);
+  // Store department has different Sunday timings: 11:00 - 18:00
+  const isStoreDept = departmentName?.toLowerCase() === "store";
+  const sundayExpectedMinutes = isStoreDept ? timeToMinutes("18:00:00") : expectedMinutes;
   let totalOvertime = 0;
 
   for (const record of attendanceRecords) {
     if (!record.out_time || record.is_on_leave) continue;
+    const isSunday = new Date(record.attendance_date + "T00:00:00").getDay() === 0;
+    const effectiveExpected = isSunday ? sundayExpectedMinutes : expectedMinutes;
     const actualMinutes = timeToMinutes(record.out_time);
-    const excess = actualMinutes - expectedMinutes;
+    const excess = actualMinutes - effectiveExpected;
     if (excess > 30) {
       totalOvertime += excess;
     }
@@ -148,7 +154,9 @@ export function calculateEmployeeMetrics(
   employee: Employee,
   attendanceRecords: AttendanceRecord[],
   year: number,
-  month: number
+  month: number,
+  departmentName?: string,
+  holidays?: Holiday[]
 ): EmployeeMetrics {
   // Filter records for the given month
   const monthRecords = attendanceRecords.filter((r) => {
@@ -167,23 +175,44 @@ export function calculateEmployeeMetrics(
     return d.getDay() === 0 && r.present !== null && r.present > 0;
   }).length;
 
-  // Total leaves
-  const totalLeaves = monthRecords.filter((r) => r.is_on_leave === true).length;
+  // Total leaves: count all non-present weekdays (Mon-Sat) that are not holidays or future
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const holidayDates = new Set((holidays ?? []).map((h) => h.holiday_date));
+  const presentDates = new Set(
+    monthRecords
+      .filter((r) => r.present !== null && r.present > 0)
+      .map((r) => r.attendance_date)
+  );
+  const explicitLeaveDates = new Set(
+    monthRecords
+      .filter((r) => r.is_on_leave === true)
+      .map((r) => r.attendance_date)
+  );
+  const daysInMonth = new Date(year, month, 0).getDate();
+  let totalLeaves = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateObj = new Date(year, month - 1, d);
+    const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    if (dateStr > todayStr) continue; // skip future dates
+    if (dateObj.getDay() === 0) continue; // skip Sundays
+    if (holidayDates.has(dateStr)) continue; // skip holidays
+    if (!presentDates.has(dateStr) || explicitLeaveDates.has(dateStr)) {
+      totalLeaves++;
+    }
+  }
 
   // Late days
   const presentRecords = monthRecords.filter(
     (r) => r.in_time && !r.is_on_leave
   );
   const lateDays = employee.in_time
-    ? calculateLateDays(employee.in_time, presentRecords)
+    ? calculateLateDays(employee.in_time, presentRecords, departmentName)
     : 0;
-
-  // Late leave deduction
-  const lateLeaveDeduction = calculateLateLeaveDeduction(lateDays);
 
   // Overtime
   const overtimeMinutes = employee.out_time
-    ? calculateOvertime(employee.out_time, presentRecords)
+    ? calculateOvertime(employee.out_time, presentRecords, departmentName)
     : 0;
 
   const overtimeFormatted = formatMinutes(overtimeMinutes);
@@ -193,7 +222,6 @@ export function calculateEmployeeMetrics(
     totalSundaysWorked,
     totalLeaves,
     lateDays,
-    lateLeaveDeduction,
     overtimeMinutes,
     overtimeFormatted,
   };

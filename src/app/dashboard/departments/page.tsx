@@ -117,7 +117,7 @@ export default function DepartmentsPage() {
           ? (totalPresent / (empIds.length * workingDays)) * 100
           : 0;
       const totalLate = attendanceRecords.filter(
-        (a) => a.late_by && a.late_by > 0
+        (a) => a.late_by && a.late_by > 10
       ).length;
       const totalOvertime = attendanceRecords.reduce(
         (sum, a) => sum + (a.overtime || 0),
@@ -132,7 +132,7 @@ export default function DepartmentsPage() {
           ...emp,
           present: empAtt.reduce((s, a) => s + (a.present || 0), 0),
           late: empAtt.filter(
-            (a) => a.late_by && a.late_by > 0
+            (a) => a.late_by && a.late_by > 10
           ).length,
           overtime: empAtt.reduce((s, a) => s + (a.overtime || 0), 0),
         };

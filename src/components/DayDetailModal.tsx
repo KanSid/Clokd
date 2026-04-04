@@ -18,6 +18,7 @@ interface DayDetailModalProps {
   dayInfo: DayInfo;
   employeeInTime: string;
   employeeOutTime: string;
+  departmentName?: string;
   onClose: () => void;
 }
 
@@ -37,10 +38,16 @@ export default function DayDetailModal({
   dayInfo,
   employeeInTime,
   employeeOutTime,
+  departmentName,
   onClose,
 }: DayDetailModalProps) {
   const { date, status, record, holiday, isLate, isOvertime, isHalfDay, isSunday } = dayInfo;
   const rec = record;
+
+  // Store department has different Sunday timings: 11:00 - 18:00
+  const isStoreDept = departmentName?.toLowerCase() === "store";
+  const effectiveInTime = isSunday && isStoreDept ? "11:00:00" : employeeInTime;
+  const effectiveOutTime = isSunday && isStoreDept ? "18:00:00" : employeeOutTime;
 
   const dateDisplay = date.toLocaleDateString("en-IN", {
     weekday: "long",
@@ -53,7 +60,7 @@ export default function DayDetailModal({
   let lateMinutes = 0;
   if (isLate && rec?.in_time) {
     const actualIn = extractTimeFromTimestamp(rec.in_time);
-    const expectedIn = parseTimeStr(employeeInTime);
+    const expectedIn = parseTimeStr(effectiveInTime);
     lateMinutes = (actualIn.hours * 60 + actualIn.minutes) - (expectedIn.hours * 60 + expectedIn.minutes);
   }
 
@@ -61,7 +68,7 @@ export default function DayDetailModal({
   let overtimeMinutes = 0;
   if (isOvertime && rec?.out_time) {
     const actualOut = extractTimeFromTimestamp(rec.out_time);
-    const expectedOut = parseTimeStr(employeeOutTime);
+    const expectedOut = parseTimeStr(effectiveOutTime);
     overtimeMinutes = (actualOut.hours * 60 + actualOut.minutes) - (expectedOut.hours * 60 + expectedOut.minutes);
   }
 
@@ -90,7 +97,7 @@ export default function DayDetailModal({
         badges.push({ label: "Present", color: "bg-emerald-100 text-emerald-800", icon: <Clock className="h-3.5 w-3.5" /> });
         break;
       case "absent":
-        badges.push({ label: "Absent", color: "bg-red-100 text-red-800", icon: <CalendarOff className="h-3.5 w-3.5" /> });
+        badges.push({ label: "Leave", color: "bg-rose-100 text-rose-800", icon: <CalendarOff className="h-3.5 w-3.5" /> });
         break;
       case "leave":
         badges.push({ label: rec?.leave_type || "On Leave", color: "bg-rose-100 text-rose-800", icon: <CalendarOff className="h-3.5 w-3.5" /> });
@@ -171,7 +178,7 @@ export default function DayDetailModal({
                   <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatTime(rec.in_time)}
                   </p>
-                  <p className="text-xs text-slate-400">Expected: {formatTime(employeeInTime)}</p>
+                  <p className="text-xs text-slate-400">Expected: {formatTime(effectiveInTime)}</p>
                 </div>
                 <div className="rounded-lg border border-slate-200 p-3">
                   <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -181,7 +188,7 @@ export default function DayDetailModal({
                   <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatTime(rec.out_time)}
                   </p>
-                  <p className="text-xs text-slate-400">Expected: {formatTime(employeeOutTime)}</p>
+                  <p className="text-xs text-slate-400">Expected: {formatTime(effectiveOutTime)}</p>
                 </div>
               </div>
 
@@ -258,10 +265,10 @@ export default function DayDetailModal({
                     {holiday.type === "public" ? "Public Holiday" : holiday.type === "optional" ? "Optional Holiday" : "Restricted Holiday"}
                   </p>
                 </div>
-              ) : status === "absent" ? (
+              ) : status === "absent" || status === "leave" ? (
                 <div>
-                  <CalendarOff className="mx-auto h-10 w-10 text-red-400" />
-                  <p className="mt-3 text-lg font-semibold text-slate-900">Absent</p>
+                  <CalendarOff className="mx-auto h-10 w-10 text-rose-400" />
+                  <p className="mt-3 text-lg font-semibold text-slate-900">Leave</p>
                   <p className="mt-1 text-sm text-slate-500">No attendance record for this day</p>
                 </div>
               ) : status === "sunday-off" ? (

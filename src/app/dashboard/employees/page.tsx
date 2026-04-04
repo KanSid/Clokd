@@ -245,6 +245,7 @@ export default function EmployeesPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedDept, setSelectedDept] = useState<string>("");
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] =
     useState<EmployeeWithDept | null>(null);
@@ -279,16 +280,29 @@ export default function EmployeesPage() {
   }
 
   const filteredEmployees = useMemo(() => {
-    if (!search.trim()) return employees;
-    const q = search.toLowerCase();
-    return employees.filter(
-      (emp) =>
-        emp.employee_name?.toLowerCase().includes(q) ||
-        emp.employee_code?.toLowerCase().includes(q) ||
-        emp.designation?.toLowerCase().includes(q) ||
-        emp.department?.dept_name?.toLowerCase().includes(q)
-    );
-  }, [employees, search]);
+    let filtered = employees;
+
+    // Filter by department
+    if (selectedDept) {
+      filtered = filtered.filter(
+        (emp) => String(emp.department_id) === selectedDept
+      );
+    }
+
+    // Filter by search
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(
+        (emp) =>
+          emp.employee_name?.toLowerCase().includes(q) ||
+          emp.employee_code?.toLowerCase().includes(q) ||
+          emp.designation?.toLowerCase().includes(q) ||
+          emp.department?.dept_name?.toLowerCase().includes(q)
+      );
+    }
+
+    return filtered;
+  }, [employees, search, selectedDept]);
 
   async function handleSave(data: Partial<Employee>) {
     if (isNew) {
@@ -400,15 +414,29 @@ export default function EmployeesPage() {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="max-w-md">
-        <input
-          type="text"
-          placeholder="Search employees..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-        />
+      {/* Search & Filter */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="max-w-md flex-1">
+          <input
+            type="text"
+            placeholder="Search employees..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+          />
+        </div>
+        <select
+          value={selectedDept}
+          onChange={(e) => setSelectedDept(e.target.value)}
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+        >
+          <option value="">All Departments</option>
+          {departments.map((dept) => (
+            <option key={dept.department_id} value={dept.department_id}>
+              {dept.dept_name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Table */}

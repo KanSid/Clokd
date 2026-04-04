@@ -77,7 +77,7 @@ export default function AttendancePage() {
 
   const presentCount = records.filter((r) => r.present && r.present > 0 && !r.is_on_leave).length;
   const leaveCount = records.filter((r) => r.is_on_leave).length;
-  const lateCount = records.filter((r) => r.late_by && r.late_by > 0).length;
+  const lateCount = records.filter((r) => r.late_by && r.late_by > 10).length;
 
   const changeDate = (delta: number) => {
     const d = new Date(selectedDate + "T00:00:00");

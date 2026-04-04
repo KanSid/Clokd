@@ -64,7 +64,7 @@ function SkeletonChart() {
 interface DeptChartData {
   department: string;
   present: number;
-  absent: number;
+  leave: number;
 }
 
 interface DailyTrendData {
@@ -117,7 +117,7 @@ export default function DashboardPage() {
       );
       setOnLeaveToday(todayRecords.filter((r) => r.is_on_leave).length);
       setLateToday(
-        todayRecords.filter((r) => r.late_by && r.late_by > 0).length
+        todayRecords.filter((r) => r.late_by && r.late_by > 10).length
       );
 
       // Recent 10 records
@@ -137,15 +137,15 @@ export default function DashboardPage() {
         .lte("attendance_date", endOfMonth);
 
       // Group by department
-      const deptMap: Record<string, { present: number; absent: number }> = {};
+      const deptMap: Record<string, { present: number; leave: number }> = {};
       (monthlyAttendance ?? []).forEach((rec: any) => {
         const deptName =
           rec.employee?.department?.dept_name ?? "Unknown";
-        if (!deptMap[deptName]) deptMap[deptName] = { present: 0, absent: 0 };
+        if (!deptMap[deptName]) deptMap[deptName] = { present: 0, leave: 0 };
         if (rec.present === 1 || rec.status === "Present") {
           deptMap[deptName].present += 1;
         } else {
-          deptMap[deptName].absent += 1;
+          deptMap[deptName].leave += 1;
         }
       });
       setDeptChartData(
@@ -312,9 +312,9 @@ export default function DashboardPage() {
                       radius={[4, 4, 0, 0]}
                     />
                     <Bar
-                      dataKey="absent"
+                      dataKey="leave"
                       fill="#f87171"
-                      name="Absent"
+                      name="Leave"
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
