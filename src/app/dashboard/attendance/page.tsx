@@ -147,6 +147,20 @@ export default function AttendancePage() {
         });
       }
     } else {
+      // Check for existing record (prevent duplicates)
+      const { data: existing } = await supabase
+        .from("attendance")
+        .select("id")
+        .eq("employee_id", Number(form.employee_id))
+        .eq("attendance_date", form.attendance_date)
+        .maybeSingle();
+
+      if (existing) {
+        alert(`An attendance record already exists for this employee on ${form.attendance_date}. Please edit the existing record instead.`);
+        setSaving(false);
+        return;
+      }
+
       // Insert
       const insertData = {
         employee_id: Number(form.employee_id),

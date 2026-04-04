@@ -131,6 +131,46 @@ export default function ReportsPage() {
     exportToCSV(data, `attendance-report-${year}-${String(month).padStart(2, "0")}.csv`);
   };
 
+  const handleExportDeptReport = (deptName?: string) => {
+    const depts = deptName
+      ? departmentReports.filter((d) => d.deptName === deptName)
+      : departmentReports;
+
+    const rows: Record<string, unknown>[] = [];
+    for (const dept of depts) {
+      // Department summary row
+      rows.push({
+        Department: dept.deptName,
+        Employee: "— DEPARTMENT TOTAL —",
+        Code: "",
+        "Days Present": dept.totalPresent,
+        "Days Leave": dept.totalLeave,
+        "Sundays Worked": dept.totalSundaysWorked,
+        "Late Days": dept.totalLate,
+        "Overtime (HH:MM)": dept.totalOvertimeFormatted,
+        "Attendance %": `${dept.avgAttendance}% avg`,
+      });
+      // Employee rows
+      for (const r of dept.employees) {
+        rows.push({
+          Department: dept.deptName,
+          Employee: r.employee.employee_name,
+          Code: r.employee.employee_code,
+          "Days Present": r.daysPresent,
+          "Days Leave": r.daysLeave,
+          "Sundays Worked": r.sundaysWorked,
+          "Late Days": r.lateDays,
+          "Overtime (HH:MM)": r.overtimeFormatted,
+          "Attendance %": `${r.attendancePct}%`,
+        });
+      }
+    }
+    const filename = deptName
+      ? `dept-report-${deptName.replace(/\s+/g, "-")}-${year}-${String(month).padStart(2, "0")}.csv`
+      : `dept-report-all-${year}-${String(month).padStart(2, "0")}.csv`;
+    exportToCSV(rows, filename);
+  };
+
   // Chart data
   const topLateEmployees = [...reports]
     .filter((r) => r.lateDays > 0)
@@ -333,6 +373,16 @@ export default function ReportsPage() {
           {/* Department Report */}
           {activeTab === "department" && (
             <div className="space-y-6">
+              {/* Export button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => handleExportDeptReport()}
+                  className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                >
+                  <Download className="h-4 w-4" /> Export All Departments
+                </button>
+              </div>
+
               {/* Department comparison chart */}
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h3 className="mb-4 text-lg font-semibold text-slate-900">Department Comparison</h3>
@@ -398,6 +448,14 @@ export default function ReportsPage() {
                   <div className="border-b border-slate-200 px-6 py-4">
                     <h3 className="text-lg font-semibold text-slate-900">{dept.deptName}</h3>
                     <p className="text-xs text-slate-500">{dept.employeeCount} employees &middot; Avg Attendance: {dept.avgAttendance}%</p>
+                  </div>
+                  <div className="flex items-center gap-2 border-b border-slate-100 px-6 pb-3">
+                    <button
+                      onClick={() => handleExportDeptReport(dept.deptName)}
+                      className="flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Export {dept.deptName}
+                    </button>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
