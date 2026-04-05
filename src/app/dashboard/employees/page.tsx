@@ -451,11 +451,11 @@ export default function EmployeesPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 text-gray-500">
-                <th className="px-4 py-3 font-medium">ID</th>
+              {/* <th className="px-4 py-3 font-medium">ID</th> */}
+                <th className="px-4 py-3 font-medium">Employee Code</th>
                 <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Code</th>
                 <th className="px-4 py-3 font-medium">Department</th>
-                <th className="px-4 py-3 font-medium">Designation</th>
+                {/* <th className="px-4 py-3 font-medium">Designation</th> */}
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Expected In</th>
                 <th className="px-4 py-3 font-medium">Expected Out</th>
@@ -478,17 +478,17 @@ export default function EmployeesPage() {
                     key={emp.employee_id}
                     className="border-b border-gray-100 hover:bg-gray-50"
                   >
-                    <td className="px-4 py-3 text-gray-500">
+                  { /* <td className="px-4 py-3 text-gray-500">
                       {emp.employee_id}
-                    </td>
+                    </td>*/}
+                    <td className="px-4 py-3">{emp.employee_code}</td>
                     <td className="px-4 py-3 font-medium text-gray-900">
                       {emp.employee_name}
                     </td>
-                    <td className="px-4 py-3">{emp.employee_code}</td>
                     <td className="px-4 py-3">
                       {emp.department?.dept_name ?? "-"}
                     </td>
-                    <td className="px-4 py-3">{emp.designation ?? "-"}</td>
+                    {/* <td className="px-4 py-3">{emp.designation ?? "-"}</td> */}
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
