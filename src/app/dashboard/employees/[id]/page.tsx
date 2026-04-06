@@ -21,6 +21,7 @@ import {
   Timer,
   Sun,
   Pencil,
+  LogOut,
 } from "lucide-react";
 
 type EmployeeWithDept = Omit<Employee, 'department'> & {
@@ -201,7 +202,7 @@ export default function EmployeeDetailPage() {
 
       {/* Metrics Cards */}
       {metrics && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-green-600">
               <CalendarDays className="h-5 w-5" />
@@ -229,6 +230,13 @@ export default function EmployeeDetailPage() {
               <span className="text-xs font-medium">Late Days</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.lateDays}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-teal-600">
+              <LogOut className="h-5 w-5" />
+              <span className="text-xs font-medium">Early Left</span>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.earlyLeaveDays}</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-blue-600">
@@ -280,6 +288,7 @@ export default function EmployeeDetailPage() {
                   <th className="px-4 py-3 font-medium">Duration</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Late By</th>
+                  <th className="px-4 py-3 font-medium">Early By</th>
                   <th className="px-4 py-3 font-medium">Overtime</th>
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
@@ -305,6 +314,11 @@ export default function EmployeeDetailPage() {
                     <td className="px-4 py-3">
                       {rec.late_by && rec.late_by > 0 ? (
                         <span className="text-amber-600 font-medium">{rec.late_by} min</span>
+                      ) : "-"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {rec.early_by && rec.early_by > 0 ? (
+                        <span className="text-teal-600 font-medium">{rec.early_by} min</span>
                       ) : "-"}
                     </td>
                     <td className="px-4 py-3">

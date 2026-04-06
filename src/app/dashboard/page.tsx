@@ -78,6 +78,7 @@ export default function DashboardPage() {
   const [presentToday, setPresentToday] = useState(0);
   const [onLeaveToday, setOnLeaveToday] = useState(0);
   const [lateToday, setLateToday] = useState(0);
+  const [earlyLeaveToday, setEarlyLeaveToday] = useState(0);
   const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>([]);
   const [deptChartData, setDeptChartData] = useState<DeptChartData[]>([]);
   const [dailyTrendData, setDailyTrendData] = useState<DailyTrendData[]>([]);
@@ -118,6 +119,9 @@ export default function DashboardPage() {
       setOnLeaveToday(todayRecords.filter((r) => r.is_on_leave).length);
       setLateToday(
         todayRecords.filter((r) => r.late_by && r.late_by > 10).length
+      );
+      setEarlyLeaveToday(
+        todayRecords.filter((r) => r.early_by && r.early_by > 10).length
       );
 
       // Recent 10 records
@@ -183,9 +187,10 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
         {loading ? (
           <>
+            <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
@@ -269,6 +274,26 @@ export default function DashboardPage() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              }
+            />
+            <StatCard
+              title="Left Early Today"
+              value={earlyLeaveToday}
+              color="bg-teal-100 text-teal-600"
+              icon={
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                   />
                 </svg>
               }
@@ -382,6 +407,7 @@ export default function DashboardPage() {
                   <th className="px-4 py-3 font-medium">Duration</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Late By</th>
+                  <th className="px-4 py-3 font-medium">Early By</th>
                 </tr>
               </thead>
               <tbody>
@@ -422,6 +448,11 @@ export default function DashboardPage() {
                       {rec.late_by && rec.late_by > 0
                         ? `${rec.late_by} min`
                         : "-"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {rec.early_by && rec.early_by > 0 ? (
+                        <span className="font-medium text-teal-600">{rec.early_by} min</span>
+                      ) : "-"}
                     </td>
                   </tr>
                 ))}

@@ -148,6 +148,36 @@ export function calculateOvertime(
 }
 
 /**
+ * Counts the number of days an employee left early.
+ * An employee left early if their actual departure time is more than
+ * 10 minutes before their expected out_time.
+ */
+export function calculateEarlyLeaveDays(
+  employeeOutTime: string,
+  attendanceRecords: AttendanceRecord[],
+  departmentName?: string
+): number {
+  const expectedMinutes = timeToMinutes(employeeOutTime);
+  const isStoreDept = departmentName?.toLowerCase() === "store";
+  const sundayExpectedMinutes = isStoreDept ? timeToMinutes("18:00:00") : expectedMinutes;
+  let count = 0;
+
+  for (const record of attendanceRecords) {
+    if (!record.out_time || record.is_on_leave) continue;
+    // Half-day leave should not count as early leave
+    if (record.present === 0.5 || (record.duration !== null && record.duration > 0 && record.duration < 240)) continue;
+    const isSunday = new Date(record.attendance_date + "T00:00:00").getDay() === 0;
+    const effectiveExpected = isSunday ? sundayExpectedMinutes : expectedMinutes;
+    const actualMinutes = timeToMinutes(record.out_time);
+    if (effectiveExpected - actualMinutes > 10) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+/**
  * Calculates all employee metrics for a given month.
  */
 export function calculateEmployeeMetrics(
@@ -210,6 +240,11 @@ export function calculateEmployeeMetrics(
     ? calculateLateDays(employee.in_time, presentRecords, departmentName)
     : 0;
 
+  // Early leave days
+  const earlyLeaveDays = employee.out_time
+    ? calculateEarlyLeaveDays(employee.out_time, presentRecords, departmentName)
+    : 0;
+
   // Overtime
   const overtimeMinutes = employee.out_time
     ? calculateOvertime(employee.out_time, presentRecords, departmentName)
@@ -222,6 +257,7 @@ export function calculateEmployeeMetrics(
     totalSundaysWorked,
     totalLeaves,
     lateDays,
+    earlyLeaveDays,
     overtimeMinutes,
     overtimeFormatted,
   };

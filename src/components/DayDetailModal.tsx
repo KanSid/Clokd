@@ -41,7 +41,7 @@ export default function DayDetailModal({
   departmentName,
   onClose,
 }: DayDetailModalProps) {
-  const { date, status, record, holiday, isLate, isOvertime, isHalfDay, isSunday } = dayInfo;
+  const { date, status, record, holiday, isLate, isOvertime, isEarlyLeave, isHalfDay, isSunday } = dayInfo;
   const rec = record;
 
   // Store department has different Sunday timings: 11:00 - 18:00
@@ -62,6 +62,14 @@ export default function DayDetailModal({
     const actualIn = extractTimeFromTimestamp(rec.in_time);
     const expectedIn = parseTimeStr(effectiveInTime);
     lateMinutes = (actualIn.hours * 60 + actualIn.minutes) - (expectedIn.hours * 60 + expectedIn.minutes);
+  }
+
+  // Calculate early leave minutes
+  let earlyLeaveMinutes = 0;
+  if (isEarlyLeave && rec?.out_time) {
+    const actualOut = extractTimeFromTimestamp(rec.out_time);
+    const expectedOut = parseTimeStr(effectiveOutTime);
+    earlyLeaveMinutes = (expectedOut.hours * 60 + expectedOut.minutes) - (actualOut.hours * 60 + actualOut.minutes);
   }
 
   // Calculate overtime minutes
@@ -124,6 +132,9 @@ export default function DayDetailModal({
 
     if (isLate) {
       badges.push({ label: `Late by ${lateMinutes} min`, color: "bg-amber-100 text-amber-800", icon: <AlertTriangle className="h-3.5 w-3.5" /> });
+    }
+    if (isEarlyLeave) {
+      badges.push({ label: `Left early by ${earlyLeaveMinutes} min`, color: "bg-teal-100 text-teal-800", icon: <LogOut className="h-3.5 w-3.5" /> });
     }
     if (isOvertime) {
       badges.push({ label: `Overtime ${formatMinutes(overtimeMinutes)}`, color: "bg-blue-100 text-blue-800", icon: <Timer className="h-3.5 w-3.5" /> });
@@ -193,7 +204,7 @@ export default function DayDetailModal({
               </div>
 
               {/* Work Details */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-lg bg-slate-50 p-3 text-center">
                   <p className="text-xs font-medium text-slate-500">Duration</p>
                   <p className="mt-1 text-sm font-bold text-slate-900">
@@ -204,6 +215,12 @@ export default function DayDetailModal({
                   <p className="text-xs font-medium text-slate-500">Late By</p>
                   <p className={`mt-1 text-sm font-bold ${isLate ? "text-amber-600" : "text-slate-900"}`}>
                     {rec.late_by && rec.late_by > 0 ? `${rec.late_by} min` : "-"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3 text-center">
+                  <p className="text-xs font-medium text-slate-500">Early By</p>
+                  <p className={`mt-1 text-sm font-bold ${isEarlyLeave ? "text-teal-600" : "text-slate-900"}`}>
+                    {isEarlyLeave ? `${earlyLeaveMinutes} min` : "-"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-slate-50 p-3 text-center">

@@ -78,6 +78,7 @@ export default function AttendancePage() {
   const presentCount = records.filter((r) => r.present && r.present > 0 && !r.is_on_leave).length;
   const leaveCount = records.filter((r) => r.is_on_leave).length;
   const lateCount = records.filter((r) => r.late_by && r.late_by > 10).length;
+  const earlyLeaveCount = records.filter((r) => r.early_by && r.early_by > 10).length;
 
   const changeDate = (delta: number) => {
     const d = new Date(selectedDate + "T00:00:00");
@@ -284,7 +285,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-2 text-slate-500">
             <Users className="h-5 w-5" />
@@ -313,6 +314,13 @@ export default function AttendancePage() {
           </div>
           <p className="mt-1 text-2xl font-bold text-amber-700">{lateCount}</p>
         </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-teal-600">
+            <Clock className="h-5 w-5" />
+            <span className="text-xs font-medium">Left Early</span>
+          </div>
+          <p className="mt-1 text-2xl font-bold text-teal-700">{earlyLeaveCount}</p>
+        </div>
       </div>
 
       {/* Table */}
@@ -336,6 +344,7 @@ export default function AttendancePage() {
                 <th className="px-4 py-3 font-medium">Duration</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Late By</th>
+                <th className="px-4 py-3 font-medium">Early By</th>
                 <th className="px-4 py-3 font-medium">Overtime</th>
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
@@ -360,6 +369,11 @@ export default function AttendancePage() {
                   <td className="px-4 py-3">
                     {rec.late_by && rec.late_by > 0 ? (
                       <span className="font-medium text-amber-600">{rec.late_by}m</span>
+                    ) : "-"}
+                  </td>
+                  <td className="px-4 py-3">
+                    {rec.early_by && rec.early_by > 0 ? (
+                      <span className="font-medium text-teal-600">{rec.early_by}m</span>
                     ) : "-"}
                   </td>
                   <td className="px-4 py-3">

@@ -104,6 +104,7 @@ export default function AttendanceCalendar({
 
       let isLate = false;
       let isOvertime = false;
+      let isEarlyLeave = false;
       let isHalfDay = false;
       const isPresent = rec ? (rec.present ?? 0) > 0 && !rec.is_on_leave : false;
       const isOnLeave = rec?.is_on_leave === true;
@@ -127,11 +128,15 @@ export default function AttendanceCalendar({
         }
       }
 
-      // Check overtime
-      if (isPresent && rec?.out_time) {
+      // Check overtime and early leave
+      if (isPresent && !isHalfDay && rec?.out_time) {
         const actualOut = extractTimeFromTimestamp(rec.out_time);
-        if (minutesDiff(actualOut, effectiveExpectedOut) > 30) {
+        const outDiff = minutesDiff(actualOut, effectiveExpectedOut);
+        if (outDiff > 30) {
           isOvertime = true;
+        }
+        if (outDiff < -10) {
+          isEarlyLeave = true;
         }
       }
 
@@ -174,6 +179,7 @@ export default function AttendanceCalendar({
         holiday,
         isLate,
         isOvertime,
+        isEarlyLeave,
         isHalfDay,
         isSunday,
       });
@@ -279,6 +285,7 @@ export default function AttendanceCalendar({
       leave: validDays.filter((d) => d.status === "leave" || d.status === "absent").length,
       halfDay: validDays.filter((d) => d.status === "half-day").length,
       overtime: validDays.filter((d) => d.isOvertime).length,
+      earlyLeave: validDays.filter((d) => d.isEarlyLeave).length,
       sundayWorked: validDays.filter((d) => d.status === "sunday-worked").length,
       holidays: validDays.filter((d) => ["holiday", "holiday-worked"].includes(d.status)).length,
     };
@@ -326,6 +333,9 @@ export default function AttendanceCalendar({
         </span>
         <span className="rounded-full bg-blue-100 px-2.5 py-1 font-medium text-blue-700">
           {stats.overtime} OT
+        </span>
+        <span className="rounded-full bg-teal-100 px-2.5 py-1 font-medium text-teal-700">
+          {stats.earlyLeave} Early Left
         </span>
         <span className="rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-700">
           {stats.sundayWorked} Sun Worked
@@ -394,6 +404,9 @@ export default function AttendanceCalendar({
                   {info.isOvertime && info.status !== "overtime" && info.status !== "late-and-overtime" && (
                     <span className="rounded bg-blue-500 px-0.5 text-[7px] font-bold text-white">OT</span>
                   )}
+                  {info.isEarlyLeave && (
+                    <span className="rounded bg-teal-500 px-0.5 text-[7px] font-bold text-white">EL</span>
+                  )}
                 </div>
               </button>
             );
@@ -409,6 +422,7 @@ export default function AttendanceCalendar({
           { color: "bg-orange-200", label: "Half-Day" },
           { color: "bg-amber-200", label: "Late" },
           { color: "bg-blue-200", label: "Overtime" },
+          { color: "bg-teal-200", label: "Early Left" },
           { color: "bg-purple-200", label: "Sunday Worked" },
           { color: "bg-pink-200", label: "Holiday" },
           { color: "bg-fuchsia-200", label: "Holiday Worked" },

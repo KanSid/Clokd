@@ -31,6 +31,7 @@ interface EmployeeReport {
   daysLeave: number;
   sundaysWorked: number;
   lateDays: number;
+  earlyLeaveDays: number;
   overtimeMinutes: number;
   overtimeFormatted: string;
   attendancePct: number;
@@ -76,6 +77,7 @@ export default function ReportsPage() {
         daysLeave: metrics.totalLeaves,
         sundaysWorked: metrics.totalSundaysWorked,
         lateDays: metrics.lateDays,
+        earlyLeaveDays: metrics.earlyLeaveDays,
         overtimeMinutes: metrics.overtimeMinutes,
         overtimeFormatted: metrics.overtimeFormatted,
         attendancePct,
@@ -125,6 +127,7 @@ export default function ReportsPage() {
       "Days Leave": r.daysLeave,
       "Sundays Worked": r.sundaysWorked,
       "Late Days": r.lateDays,
+      "Early Left Days": r.earlyLeaveDays,
       "Overtime (HH:MM)": r.overtimeFormatted,
       "Attendance %": r.attendancePct,
     }));
@@ -147,6 +150,7 @@ export default function ReportsPage() {
         "Days Leave": dept.totalLeave,
         "Sundays Worked": dept.totalSundaysWorked,
         "Late Days": dept.totalLate,
+        "Early Left Days": dept.totalEarlyLeave,
         "Overtime (HH:MM)": dept.totalOvertimeFormatted,
         "Attendance %": `${dept.avgAttendance}% avg`,
       });
@@ -160,6 +164,7 @@ export default function ReportsPage() {
           "Days Leave": r.daysLeave,
           "Sundays Worked": r.sundaysWorked,
           "Late Days": r.lateDays,
+          "Early Left Days": r.earlyLeaveDays,
           "Overtime (HH:MM)": r.overtimeFormatted,
           "Attendance %": `${r.attendancePct}%`,
         });
@@ -226,6 +231,7 @@ export default function ReportsPage() {
       const totalLeave = emps.reduce((s, r) => s + r.daysLeave, 0);
       const totalSundaysWorked = emps.reduce((s, r) => s + r.sundaysWorked, 0);
       const totalLate = emps.reduce((s, r) => s + r.lateDays, 0);
+      const totalEarlyLeave = emps.reduce((s, r) => s + r.earlyLeaveDays, 0);
       const totalOT = emps.reduce((s, r) => s + r.overtimeMinutes, 0);
       const avgAtt = emps.length > 0 ? Math.round(emps.reduce((s, r) => s + r.attendancePct, 0) / emps.length) : 0;
       return {
@@ -235,6 +241,7 @@ export default function ReportsPage() {
         totalLeave,
         totalSundaysWorked,
         totalLate,
+        totalEarlyLeave,
         totalOvertimeMinutes: totalOT,
         totalOvertimeFormatted: formatMinutes(totalOT),
         avgAttendance: avgAtt,
@@ -337,6 +344,7 @@ export default function ReportsPage() {
                       <th className="px-4 py-3 font-medium">Leave</th>
                       <th className="px-4 py-3 font-medium">Sun Worked</th>
                       <th className="px-4 py-3 font-medium">Late Days</th>
+                      <th className="px-4 py-3 font-medium">Early Left</th>
                       <th className="px-4 py-3 font-medium">Overtime</th>
                       <th className="px-4 py-3 font-medium">Attendance %</th>
                     </tr>
@@ -351,6 +359,9 @@ export default function ReportsPage() {
                         <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
                         <td className="px-4 py-3">
                           {r.lateDays > 0 ? <span className="text-amber-600 font-medium">{r.lateDays}</span> : "0"}
+                        </td>
+                        <td className="px-4 py-3">
+                          {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
                         </td>
                         <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
                         <td className="px-4 py-3">
@@ -433,6 +444,10 @@ export default function ReportsPage() {
                         <p className="text-xs font-medium text-amber-600">Total Late</p>
                         <p className="text-lg font-bold text-amber-700">{dept.totalLate}</p>
                       </div>
+                      <div className="rounded-lg bg-teal-50 p-3">
+                        <p className="text-xs font-medium text-teal-600">Early Left</p>
+                        <p className="text-lg font-bold text-teal-700">{dept.totalEarlyLeave}</p>
+                      </div>
                       <div className="rounded-lg bg-blue-50 p-3">
                         <p className="text-xs font-medium text-blue-600">Overtime</p>
                         <p className="text-lg font-bold text-blue-700">{dept.totalOvertimeFormatted}</p>
@@ -466,6 +481,7 @@ export default function ReportsPage() {
                           <th className="px-4 py-3 font-medium">Leave</th>
                           <th className="px-4 py-3 font-medium">Sun Worked</th>
                           <th className="px-4 py-3 font-medium">Late Days</th>
+                          <th className="px-4 py-3 font-medium">Early Left</th>
                           <th className="px-4 py-3 font-medium">Overtime</th>
                           <th className="px-4 py-3 font-medium">Attendance %</th>
                         </tr>
@@ -479,6 +495,9 @@ export default function ReportsPage() {
                             <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
                             <td className="px-4 py-3">
                               {r.lateDays > 0 ? <span className="text-amber-600 font-medium">{r.lateDays}</span> : "0"}
+                            </td>
+                            <td className="px-4 py-3">
+                              {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
                             </td>
                             <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
                             <td className="px-4 py-3">
@@ -623,6 +642,7 @@ export default function ReportsPage() {
                     <th className="px-4 py-3 font-medium">Department</th>
                     <th className="px-4 py-3 font-medium">Attendance %</th>
                     <th className="px-4 py-3 font-medium">Late Days</th>
+                    <th className="px-4 py-3 font-medium">Early Left</th>
                     <th className="px-4 py-3 font-medium">Overtime</th>
                     <th className="px-4 py-3 font-medium">Performance Score</th>
                   </tr>
@@ -635,6 +655,9 @@ export default function ReportsPage() {
                       <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
                       <td className="px-4 py-3">{r.attendancePct}%</td>
                       <td className="px-4 py-3">{r.lateDays}</td>
+                      <td className="px-4 py-3">
+                        {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
+                      </td>
                       <td className="px-4 py-3">{r.overtimeFormatted}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">

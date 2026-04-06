@@ -62,6 +62,7 @@ export interface EmployeeMetrics {
   totalSundaysWorked: number;
   totalLeaves: number;
   lateDays: number;
+  earlyLeaveDays: number;
   overtimeMinutes: number;
   overtimeFormatted: string;
 }
@@ -106,6 +107,7 @@ export interface DayInfo {
   holiday: Holiday | null;
   isLate: boolean;
   isOvertime: boolean;
+  isEarlyLeave: boolean;
   isHalfDay: boolean;
   isSunday: boolean;
 }
