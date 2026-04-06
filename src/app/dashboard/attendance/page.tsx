@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 
 export default function AttendancePage() {
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const [selectedDate, setSelectedDate] = useState(today);
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -83,7 +84,11 @@ export default function AttendancePage() {
   const changeDate = (delta: number) => {
     const d = new Date(selectedDate + "T00:00:00");
     d.setDate(d.getDate() + delta);
-    setSelectedDate(d.toISOString().split("T")[0]);
+    if (d > new Date()) return;
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    setSelectedDate(`${yyyy}-${mm}-${dd}`);
   };
 
   const openAddModal = () => {
@@ -255,10 +260,13 @@ export default function AttendancePage() {
           <input
             type="date"
             value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+            max={today}
+            onChange={(e) => {
+              if (e.target.value <= today) setSelectedDate(e.target.value);
+            }}
             className="border-0 bg-transparent px-2 py-1 text-sm font-medium text-slate-900 focus:outline-none"
           />
-          <button onClick={() => changeDate(1)} className="rounded p-1 hover:bg-slate-100">
+          <button onClick={() => changeDate(1)} disabled={selectedDate >= today} className="rounded p-1 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed">
             <ChevronRight className="h-5 w-5 text-slate-600" />
           </button>
         </div>
