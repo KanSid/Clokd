@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { AttendanceRecord, Department } from "@/lib/types";
-import { formatTime, formatDate, formatDuration, formatMinutes } from "@/lib/utils";
+import { formatTime, formatDate, formatDuration, formatMinutes, calculateEarlyByForRecord } from "@/lib/utils";
 import {
   ChevronLeft,
   ChevronRight,
@@ -123,18 +123,38 @@ export default function AttendancePage() {
 
     if (editingRecord) {
       // Update
-      const { data: oldRec } = await supabase
-        .from("attendance")
-        .select("*")
-        .eq("id", editingRecord.id)
-        .single();
+      const [{ data: oldRec }, { data: emp }] = await Promise.all([
+        supabase
+          .from("attendance")
+          .select("*")
+          .eq("id", editingRecord.id)
+          .single(),
+        supabase
+          .from("employees")
+          .select("out_time, department:department(dept_name)")
+          .eq("employee_id", editingRecord.employee_id)
+          .single(),
+      ]);
 
       const updateData: Record<string, unknown> = {
         status: form.status,
         is_on_leave: form.is_on_leave,
       };
       if (form.in_time) updateData.in_time = form.in_time;
-      if (form.out_time) updateData.out_time = form.out_time;
+      if (form.out_time) {
+        updateData.out_time = form.out_time;
+        // Recalculate early_by when out_time changes
+        if (emp?.out_time) {
+          const deptName = (emp as unknown as { department?: { dept_name: string } | null }).department?.dept_name;
+          const earlyBy = calculateEarlyByForRecord(
+            form.out_time,
+            emp.out_time,
+            editingRecord.attendance_date,
+            deptName ?? undefined
+          );
+          updateData.early_by = earlyBy > 0 ? earlyBy : 0;
+        }
+      }
 
       const { error } = await supabase
         .from("attendance")
@@ -167,6 +187,24 @@ export default function AttendancePage() {
         return;
       }
 
+      // Fetch employee's expected out_time for early_by calculation
+      const { data: emp } = await supabase
+        .from("employees")
+        .select("out_time, department:department(dept_name)")
+        .eq("employee_id", Number(form.employee_id))
+        .single();
+
+      let earlyBy = 0;
+      if (form.out_time && emp?.out_time) {
+        const deptName = (emp as unknown as { department?: { dept_name: string } | null }).department?.dept_name;
+        earlyBy = calculateEarlyByForRecord(
+          form.out_time,
+          emp.out_time,
+          form.attendance_date,
+          deptName ?? undefined
+        );
+      }
+
       // Insert
       const insertData = {
         employee_id: Number(form.employee_id),
@@ -177,6 +215,7 @@ export default function AttendancePage() {
         is_on_leave: form.is_on_leave,
         present: form.is_on_leave ? 0 : 1,
         absent: form.is_on_leave ? 1 : 0,
+        early_by: earlyBy > 0 ? earlyBy : 0,
       };
 
       const { data: inserted, error } = await supabase

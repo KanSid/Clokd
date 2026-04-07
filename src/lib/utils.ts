@@ -79,10 +79,31 @@ export function formatDuration(minutes: number | null | undefined): string {
  * and returns it as total minutes since midnight.
  * Does NOT apply timezone conversion — parses time directly from string.
  */
-function timeToMinutes(timeStr: string): number {
+export function timeToMinutes(timeStr: string): number {
   const parsed = extractHoursMinutes(timeStr);
   if (!parsed) return 0;
   return parsed.hours * 60 + parsed.minutes;
+}
+
+/**
+ * Calculates the early_by value (in minutes) for a single attendance record.
+ * Returns > 0 if the employee left before their expected out time, 0 otherwise.
+ */
+export function calculateEarlyByForRecord(
+  actualOutTime: string,
+  expectedOutTime: string,
+  attendanceDate: string,
+  departmentName?: string
+): number {
+  const isStoreDept = departmentName?.toLowerCase() === "store";
+  const isSunday = new Date(attendanceDate + "T00:00:00").getDay() === 0;
+  const effectiveExpected = isSunday && isStoreDept ? "18:00:00" : expectedOutTime;
+
+  const expectedMinutes = timeToMinutes(effectiveExpected);
+  const actualMinutes = timeToMinutes(actualOutTime);
+  const diff = expectedMinutes - actualMinutes;
+
+  return diff > 0 ? diff : 0;
 }
 
 /**

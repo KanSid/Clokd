@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase/client";
 import type { Employee, AttendanceRecord, Holiday } from "@/lib/types";
 import {
   calculateEmployeeMetrics,
+  calculateEarlyByForRecord,
   formatTime,
   formatDate,
   formatDuration,
@@ -125,7 +126,19 @@ export default function EmployeeDetailPage() {
       is_on_leave: editForm.is_on_leave,
     };
     if (editForm.in_time) updateData.in_time = editForm.in_time;
-    if (editForm.out_time) updateData.out_time = editForm.out_time;
+    if (editForm.out_time) {
+      updateData.out_time = editForm.out_time;
+      // Recalculate early_by when out_time changes
+      if (employee?.out_time) {
+        const earlyBy = calculateEarlyByForRecord(
+          editForm.out_time,
+          employee.out_time,
+          editingRecord.attendance_date,
+          employee.department?.dept_name ?? undefined
+        );
+        updateData.early_by = earlyBy > 0 ? earlyBy : 0;
+      }
+    }
 
     const { error } = await supabase
       .from("attendance")
