@@ -25,7 +25,9 @@ export default function LoginPage() {
       });
 
       if (authError) {
-        setError(authError.message);
+        // Use a generic message to avoid leaking whether the email exists
+        // (prevents user enumeration via timing/message differences).
+        setError('Invalid email or password. Please try again.');
         return;
       }
 
