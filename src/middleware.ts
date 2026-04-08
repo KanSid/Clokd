@@ -48,6 +48,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Admin-only route guard — only users with role 'admin' can access /dashboard/admin
+  if (user && request.nextUrl.pathname.startsWith("/dashboard/admin")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard/unauthorized";
+      return NextResponse.redirect(url);
+    }
+  }
+
   return supabaseResponse;
 }
 

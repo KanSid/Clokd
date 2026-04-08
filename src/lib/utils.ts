@@ -304,6 +304,20 @@ export function cn(...inputs: ClassValue[]): string {
 }
 
 /**
+ * Sanitizes a single CSV cell value to prevent CSV/formula injection.
+ *
+ * Spreadsheet applications (Excel, Google Sheets) treat cells beginning with
+ * =, +, -, @, TAB, or CR as formulas. Prefixing with a single quote tells
+ * the app to treat the value as plain text and is stripped from display.
+ */
+function sanitizeCsvCell(value: string): string {
+  if (/^[=+\-@\t\r]/.test(value)) {
+    return `'${value}`;
+  }
+  return value;
+}
+
+/**
  * Exports an array of objects as a CSV file download.
  */
 export function exportToCSV(data: Record<string, unknown>[], filename: string): void {
@@ -313,13 +327,14 @@ export function exportToCSV(data: Record<string, unknown>[], filename: string): 
   const csvRows: string[] = [];
 
   // Header row
-  csvRows.push(headers.map((h) => `"${h}"`).join(","));
+  csvRows.push(headers.map((h) => `"${sanitizeCsvCell(h)}"`).join(","));
 
   // Data rows
   for (const row of data) {
     const values = headers.map((h) => {
       const val = row[h];
-      const escaped = String(val ?? "").replace(/"/g, '""');
+      const sanitized = sanitizeCsvCell(String(val ?? ""));
+      const escaped = sanitized.replace(/"/g, '""');
       return `"${escaped}"`;
     });
     csvRows.push(values.join(","));

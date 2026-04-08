@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -17,25 +17,49 @@ import {
   X,
   PartyPopper,
 } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
-const navLinks = [
+// Links visible to every authenticated user
+const commonLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/employees", label: "Employees", icon: Users },
   { href: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
   { href: "/dashboard/departments", label: "Departments", icon: Building2 },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard/holidays", label: "Holidays", icon: PartyPopper },
-  { href: "/dashboard/admin", label: "Admin Users", icon: Shield },
   { href: "/dashboard/edit-logs", label: "Edit Logs", icon: FileText },
+];
+
+// Links visible only to admins
+const adminLinks = [
+  { href: "/dashboard/admin", label: "Admin", icon: Shield },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [role, setRole] = useState<"admin" | "viewer" | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
+
+  useEffect(() => {
+    async function loadProfile() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      setUserEmail(user.email ?? "");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      setRole((profile?.role as "admin" | "viewer") ?? "viewer");
+    }
+    loadProfile();
+  }, []);
 
   const handleLogout = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
   };
@@ -44,6 +68,10 @@ export default function Sidebar() {
     if (href === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(href);
   };
+
+  const visibleLinks = role === "admin"
+    ? [...commonLinks, ...adminLinks]
+    : commonLinks;
 
   const sidebarContent = (
     <div className="flex h-full flex-col bg-slate-900 text-white">
@@ -57,7 +85,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navLinks.map((link) => {
+        {visibleLinks.map((link) => {
           const Icon = link.icon;
           const active = isActive(link.href);
           return (
@@ -78,8 +106,30 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="border-t border-slate-700 p-3">
+      {/* User info + Logout */}
+      <div className="border-t border-slate-700 p-3 space-y-1">
+        {/* Role badge + email */}
+        {userEmail && (
+          <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-700 text-xs font-bold uppercase text-slate-300">
+              {userEmail[0]}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs text-slate-300">{userEmail}</p>
+              {role && (
+                <span
+                  className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    role === "admin"
+                      ? "bg-indigo-500/20 text-indigo-300"
+                      : "bg-slate-600/50 text-slate-400"
+                  }`}
+                >
+                  {role}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"

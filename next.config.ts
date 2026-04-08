@@ -1,7 +1,44 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  // Prevent browsers from MIME-sniffing the content type
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  // Block the page from being embedded in an iframe (clickjacking protection)
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  // Control how much referrer info is sent with requests
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Restrict access to browser features
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=()",
+  },
+  // Content Security Policy — restrict resource origins
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      // Next.js requires 'unsafe-inline' for its runtime styles; nonces are
+      // the stricter alternative but require middleware integration.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob:",
+      "font-src 'self'",
+      // Allow connections to Supabase (REST, Auth, Realtime)
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co`,
+      "frame-ancestors 'none'",
+    ].join("; "),
+  },
+];
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

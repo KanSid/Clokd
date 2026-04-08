@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import { Shield, UserPlus, AlertTriangle, User } from "lucide-react";
 
 interface AdminActivity {
@@ -15,10 +15,11 @@ export default function AdminPage() {
   const [adminActivities, setAdminActivities] = useState<AdminActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Create admin form
+  // Create user form
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"viewer" | "admin">("viewer");
   const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -28,6 +29,7 @@ export default function AdminPage() {
   }, []);
 
   async function fetchCurrentUser() {
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setCurrentUser({ email: user.email ?? "", id: user.id });
@@ -36,7 +38,7 @@ export default function AdminPage() {
 
   async function fetchAdminActivity() {
     setLoading(true);
-    // Get distinct editors and their activity from edit_logs
+    const supabase = createClient();
     const { data } = await supabase
       .from("edit_logs")
       .select("editor_email, created_at")
@@ -65,7 +67,7 @@ export default function AdminPage() {
     setLoading(false);
   }
 
-  async function handleCreateAdmin(e: React.FormEvent) {
+  async function handleCreateUser(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
 
@@ -73,34 +75,60 @@ export default function AdminPage() {
       setMessage({ type: "error", text: "Passwords do not match" });
       return;
     }
-    if (password.length < 6) {
-      setMessage({ type: "error", text: "Password must be at least 6 characters" });
+    if (password.length < 8) {
+      setMessage({ type: "error", text: "Password must be at least 8 characters" });
       return;
     }
 
     setCreating(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
       setMessage({ type: "error", text: error.message });
-    } else {
-      setMessage({
-        type: "success",
-        text: `Admin account created for ${email}. They may need to verify their email depending on your Supabase settings.`,
-      });
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
+      setCreating(false);
+      return;
     }
+
+    // If the chosen role is admin, promote the newly created profile.
+    // The database trigger auto-creates a 'viewer' profile on signup;
+    // we update it here if admin was selected.
+    if (data.user && selectedRole === "admin") {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ role: "admin" })
+        .eq("id", data.user.id);
+
+      if (profileError) {
+        setMessage({
+          type: "error",
+          text: `User created but role could not be set to admin: ${profileError.message}`,
+        });
+        setCreating(false);
+        return;
+      }
+    }
+
+    setMessage({
+      type: "success",
+      text: `${selectedRole === "admin" ? "Admin" : "Viewer"} account created for ${email}.`,
+    });
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setSelectedRole("viewer");
     setCreating(false);
   }
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-slate-900">Admin Users</h1>
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <h1 className="text-3xl font-bold text-slate-900">Admin Panel</h1>
+        <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
+          Admin Only
+        </span>
+      </div>
 
       {/* Current Admin Info */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -115,22 +143,22 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Create Admin Form */}
+      {/* Create User Form */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <UserPlus className="h-5 w-5 text-indigo-600" />
-          <h2 className="text-lg font-semibold text-slate-900">Create New Admin</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Create New User</h2>
         </div>
 
         <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
           <p className="text-sm text-amber-800">
             This creates a new Supabase Auth user. In production, use a service role key via a secure API route
-            for proper admin management.
+            for proper user management.
           </p>
         </div>
 
-        <form onSubmit={handleCreateAdmin} className="max-w-md space-y-4">
+        <form onSubmit={handleCreateUser} className="max-w-md space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
             <input
@@ -139,9 +167,54 @@ export default function AdminPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-              placeholder="admin@example.com"
+              placeholder="user@example.com"
             />
           </div>
+
+          {/* Role selector */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
+            <div className="flex gap-3">
+              <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
+                selectedRole === "viewer"
+                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 text-slate-600 hover:border-slate-300"
+              }`}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="viewer"
+                  checked={selectedRole === "viewer"}
+                  onChange={() => setSelectedRole("viewer")}
+                  className="hidden"
+                />
+                <User className="h-4 w-4" />
+                <span>Viewer</span>
+              </label>
+              <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
+                selectedRole === "admin"
+                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 text-slate-600 hover:border-slate-300"
+              }`}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="admin"
+                  checked={selectedRole === "admin"}
+                  onChange={() => setSelectedRole("admin")}
+                  className="hidden"
+                />
+                <Shield className="h-4 w-4" />
+                <span>Admin</span>
+              </label>
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500">
+              {selectedRole === "admin"
+                ? "Full access including this Admin panel."
+                : "Can view and edit records but cannot access the Admin panel."}
+            </p>
+          </div>
+
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Password</label>
             <input
@@ -150,7 +223,7 @@ export default function AdminPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-              placeholder="Min 6 characters"
+              placeholder="Min 8 characters"
             />
           </div>
           <div>
@@ -178,7 +251,7 @@ export default function AdminPage() {
             disabled={creating}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {creating ? "Creating..." : "Create Admin Account"}
+            {creating ? "Creating..." : `Create ${selectedRole === "admin" ? "Admin" : "Viewer"} Account`}
           </button>
         </form>
       </div>
