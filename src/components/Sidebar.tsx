@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   PartyPopper,
+  UserCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -28,6 +29,7 @@ const commonLinks = [
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard/holidays", label: "Holidays", icon: PartyPopper },
   { href: "/dashboard/edit-logs", label: "Edit Logs", icon: FileText },
+  { href: "/dashboard/profile", label: "My Profile", icon: UserCircle },
 ];
 
 // Links visible only to admins
