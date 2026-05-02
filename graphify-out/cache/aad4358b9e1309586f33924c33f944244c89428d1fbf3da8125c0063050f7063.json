@@ -1,0 +1,1 @@
+{"nodes": [{"id": "supabaseserver_createclient", "label": "Supabase Server Client Factory", "file_type": "code", "source_file": "src/lib/supabase/server.ts", "source_location": "4-29", "source_url": null, "captured_at": null, "author": null, "contributor": null}], "edges": [], "hyperedges": []}

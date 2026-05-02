@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated
+
+# local claude settings
+.claude/settings.local.json
+
+# attendance source dumps (polled into Supabase)
+data_in/
