@@ -261,7 +261,7 @@ export default function EmployeesPage() {
   async function fetchEmployees() {
     setLoading(true);
     const { data, error } = await supabase
-      .from("employees")
+      .from("employees_filt")
       .select("*, department:department(dept_name)")
       .order("department_id", { ascending: true });
 
