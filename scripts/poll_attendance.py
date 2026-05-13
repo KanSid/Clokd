@@ -27,7 +27,7 @@ import pyodbc
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "data_in"
+DATA_DIR = ROOT 
 ENV_FILE = ROOT / ".env.local"
 
 BATCH = 500
@@ -202,6 +202,15 @@ def _coerce_date(v: Any) -> str | None:
     return None
 
 
+def _is_sunday(date_str: str | None) -> bool:
+    if not date_str:
+        return False
+    try:
+        return date.fromisoformat(date_str).isoweekday() == 7
+    except ValueError:
+        return False
+
+
 def sync_attendance(
     cur: pyodbc.Cursor,
     sb: Supabase,
@@ -254,7 +263,7 @@ def sync_attendance(
                 "leave_type": r["LeaveType"],
                 "status": r["Status"],
                 "status_code": r["StatusCode"],
-                "overtime": _coerce_int(r["OverTime"]),
+                "overtime": None if _is_sunday(d) else _coerce_int(r["OverTime"]),
                 "shift_id": _coerce_int(r["ShiftId"]),
                 "present": r["Present"],
                 "absent": r["Absent"],

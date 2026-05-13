@@ -263,7 +263,7 @@ export default function EmployeesPage() {
     const { data, error } = await supabase
       .from("employees")
       .select("*, department:department(dept_name)")
-      .order("employee_id", { ascending: true });
+      .order("department_id", { ascending: true });
 
     if (!error && data) {
       setEmployees(data as EmployeeWithDept[]);

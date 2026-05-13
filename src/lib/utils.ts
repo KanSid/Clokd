@@ -157,6 +157,9 @@ export function calculateOvertime(
   for (const record of attendanceRecords) {
     if (!record.out_time || record.is_on_leave) continue;
     const isSunday = new Date(record.attendance_date + "T00:00:00").getDay() === 0;
+    // Non-Store employees have no scheduled Sunday shift; their Sunday hours
+    // are already counted under totalSundaysWorked, not overtime.
+    if (isSunday && !isStoreDept) continue;
     const effectiveExpected = isSunday ? sundayExpectedMinutes : expectedMinutes;
     const actualMinutes = timeToMinutes(record.out_time);
     const excess = actualMinutes - effectiveExpected;
