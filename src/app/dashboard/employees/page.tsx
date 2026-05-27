@@ -7,6 +7,7 @@ import type { Employee, Department } from "@/lib/types";
 import { formatTime } from "@/lib/utils";
 
 type EmployeeWithDept = Omit<Employee, 'department'> & {
+  emp_id?: string | null;
   department?: { dept_name: string } | null;
 };
 
@@ -263,6 +264,7 @@ export default function EmployeesPage() {
     const { data, error } = await supabase
       .from("employees_filt")
       .select("*, department:department(dept_name)")
+      .neq('department_id', 1)
       .order("department_id", { ascending: true });
 
     if (!error && data) {
@@ -452,7 +454,7 @@ export default function EmployeesPage() {
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 text-gray-500">
               {/* <th className="px-4 py-3 font-medium">ID</th> */}
-                <th className="px-4 py-3 font-medium">Employee Code</th>
+                <th className="px-4 py-3 font-medium">Employee ID</th>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Department</th>
                 {/* <th className="px-4 py-3 font-medium">Designation</th> */}
@@ -481,7 +483,7 @@ export default function EmployeesPage() {
                   { /* <td className="px-4 py-3 text-gray-500">
                       {emp.employee_id}
                     </td>*/}
-                    <td className="px-4 py-3">{emp.employee_code}</td>
+                    <td className="px-4 py-3">{emp.emp_id ?? "-"}</td>
                     <td className="px-4 py-3 font-medium text-gray-900">
                       {emp.employee_name}
                     </td>
