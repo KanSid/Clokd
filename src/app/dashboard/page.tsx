@@ -118,10 +118,10 @@ export default function DashboardPage() {
       );
       setOnLeaveToday(todayRecords.filter((r) => r.is_on_leave).length);
       setLateToday(
-        todayRecords.filter((r) => r.late_by && r.late_by > 10).length
+        todayRecords.filter((r) => r.late_by && r.late_by > 0).length
       );
       setEarlyLeaveToday(
-        todayRecords.filter((r) => r.early_by && r.early_by > 10).length
+        todayRecords.filter((r) => r.early_by && r.early_by > 0).length
       );
 
       // Recent 10 records

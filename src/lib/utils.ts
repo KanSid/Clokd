@@ -85,120 +85,31 @@ export function timeToMinutes(timeStr: string): number {
   return parsed.hours * 60 + parsed.minutes;
 }
 
-/**
- * Calculates the early_by value (in minutes) for a single attendance record.
- * Returns > 0 if the employee left before their expected out time, 0 otherwise.
- */
-export function calculateEarlyByForRecord(
-  actualOutTime: string,
-  expectedOutTime: string,
-  attendanceDate: string,
-  departmentName?: string
-): number {
-  const isStoreDept = departmentName?.toLowerCase() === "store";
-  const isSunday = new Date(attendanceDate + "T00:00:00").getDay() === 0;
-  const effectiveExpected = isSunday && isStoreDept ? "18:00:00" : expectedOutTime;
-
-  const expectedMinutes = timeToMinutes(effectiveExpected);
-  const actualMinutes = timeToMinutes(actualOutTime);
-  const diff = expectedMinutes - actualMinutes;
-
-  return diff > 0 ? diff : 0;
-}
-
-/**
- * Counts the number of late days for an employee.
- * An employee is late if their actual arrival time exceeds
- * their expected in_time by more than 10 minutes.
- */
-export function calculateLateDays(
-  employeeInTime: string,
-  attendanceRecords: AttendanceRecord[],
-  departmentName?: string
-): number {
-  const expectedMinutes = timeToMinutes(employeeInTime);
-  // Store department has different Sunday timings: 11:00 - 18:00
-  const isStoreDept = departmentName?.toLowerCase() === "store";
-  const sundayExpectedMinutes = isStoreDept ? timeToMinutes("11:00:00") : expectedMinutes;
-  let count = 0;
-
-  for (const record of attendanceRecords) {
-    if (!record.in_time || record.is_on_leave) continue;
-    // Half-day leave should not count as late
-    if (record.present === 0.5 || (record.duration !== null && record.duration > 0 && record.duration < 240)) continue;
-    const isSunday = new Date(record.attendance_date + "T00:00:00").getDay() === 0;
-    const effectiveExpected = isSunday ? sundayExpectedMinutes : expectedMinutes;
-    const actualMinutes = timeToMinutes(record.in_time);
-    if (actualMinutes - effectiveExpected > 10) {
-      count++;
-    }
-  }
-
-  return count;
-}
 
 
 /**
- * Calculates total overtime in minutes.
- * If actual departure exceeds expected out_time by more than 30 minutes,
- * the excess is counted as overtime.
+ * Calculates total overtime in minutes from DB-computed overtime field.
  */
 export function calculateOvertime(
-  employeeOutTime: string,
+  _employeeOutTime: string,
   attendanceRecords: AttendanceRecord[],
-  departmentName?: string
+  _departmentName?: string
 ): number {
-  const expectedMinutes = timeToMinutes(employeeOutTime);
-  // Store department has different Sunday timings: 11:00 - 18:00
-  const isStoreDept = departmentName?.toLowerCase() === "store";
-  const sundayExpectedMinutes = isStoreDept ? timeToMinutes("18:00:00") : expectedMinutes;
-  let totalOvertime = 0;
-
-  for (const record of attendanceRecords) {
-    if (!record.out_time || record.is_on_leave) continue;
-    const isSunday = new Date(record.attendance_date + "T00:00:00").getDay() === 0;
-    // Non-Store employees have no scheduled Sunday shift; their Sunday hours
-    // are already counted under totalSundaysWorked, not overtime.
-    if (isSunday && !isStoreDept) continue;
-    const effectiveExpected = isSunday ? sundayExpectedMinutes : expectedMinutes;
-    const actualMinutes = timeToMinutes(record.out_time);
-    const excess = actualMinutes - effectiveExpected;
-    if (excess > 30) {
-      totalOvertime += excess;
-    }
-  }
-
-  return totalOvertime;
+  return attendanceRecords.reduce((sum, r) => sum + (r.overtime ?? 0), 0);
 }
 
 /**
  * Counts the number of days an employee left early.
- * An employee left early if their actual departure time is more than
- * 10 minutes before their expected out_time.
+ * Uses DB-computed early_by (no grace period).
  */
 export function calculateEarlyLeaveDays(
-  employeeOutTime: string,
+  _employeeOutTime: string,
   attendanceRecords: AttendanceRecord[],
-  departmentName?: string
+  _departmentName?: string
 ): number {
-  const expectedMinutes = timeToMinutes(employeeOutTime);
-  const isStoreDept = departmentName?.toLowerCase() === "store";
-  const sundayExpectedMinutes = isStoreDept ? timeToMinutes("18:00:00") : expectedMinutes;
-  let count = 0;
-
-  for (const record of attendanceRecords) {
-    if (!record.out_time || record.is_on_leave) continue;
-    // Half-day leave should not count as early leave
-    if (record.present === 0.5 || (record.duration !== null && record.duration > 0 && record.duration < 240)) continue;
-    const isSunday = new Date(record.attendance_date + "T00:00:00").getDay() === 0;
-    const effectiveExpected = isSunday ? sundayExpectedMinutes : expectedMinutes;
-    const actualMinutes = timeToMinutes(record.out_time);
-    if (effectiveExpected - actualMinutes > 10) {
-      count++;
-    }
-  }
-
-  return count;
+  return attendanceRecords.filter(
+    (r) => !r.is_on_leave && r.early_by != null && r.early_by > 0
+  ).length;
 }
 
 /**
@@ -256,13 +167,9 @@ export function calculateEmployeeMetrics(
     }
   }
 
-  // Late days
   const presentRecords = monthRecords.filter(
     (r) => r.in_time && !r.is_on_leave
   );
-  const lateDays = employee.in_time
-    ? calculateLateDays(employee.in_time, presentRecords, departmentName)
-    : 0;
 
   // Early leave days
   const earlyLeaveDays = employee.out_time
@@ -280,7 +187,6 @@ export function calculateEmployeeMetrics(
     totalWorkingDays,
     totalSundaysWorked,
     totalLeaves,
-    lateDays,
     earlyLeaveDays,
     overtimeMinutes,
     overtimeFormatted,

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Half-Day Calendar Cell Preview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f8fafc;
+      padding: 40px;
+      color: #1e293b;
+    }
+
+    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 6px; }
+    p.sub { font-size: 0.8rem; color: #64748b; margin-bottom: 40px; }
+
+    section { margin-bottom: 48px; }
+    section h2 {
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: #94a3b8; margin-bottom: 16px;
+    }
+
+    .row { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+
+    .cell-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .label {
+      font-size: 0.7rem; font-weight: 600; color: #475569;
+      text-align: center; max-width: 90px;
+    }
+    .label small { display: block; font-weight: 400; color: #94a3b8; margin-top: 2px; }
+
+    /* Base cell */
+    .cell {
+      width: 80px; height: 80px;
+      border-radius: 10px; border: 1.5px solid transparent;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      cursor: pointer; transition: filter 0.15s;
+    }
+    .cell:hover { filter: brightness(0.93); }
+
+    .day-num {
+      font-size: 10px; font-weight: 600;
+      position: absolute; top: 6px; left: 8px; opacity: 0.65;
+    }
+    .status-label {
+      font-size: 12px; font-weight: 800;
+      letter-spacing: 0.02em; position: relative; z-index: 2;
+    }
+
+    /* Cell colours */
+    .present  { background:#d1fae5; border-color:#6ee7b7; color:#065f46; }
+    .ot-cell  { background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
+    .hdl-diag { background:linear-gradient(135deg,#fde68a 50%,#bbf7d0 50%); border-color:#86efac; color:#065f46; }
+    .hde-diag { background:linear-gradient(135deg,#bbf7d0 50%,#fde68a 50%); border-color:#86efac; color:#065f46; }
+
+    /* Style B — stacked badge */
+    .badge {
+      position: absolute;
+      bottom: 5px;
+      display: flex; flex-direction: column; align-items: center;
+      line-height: 1.15;
+      background: rgba(0,0,0,0.11);
+      padding: 2px 6px; border-radius: 8px;
+      z-index: 3;
+    }
+    .badge .num  { font-size: 11px; font-weight: 800; }
+    .badge .unit { font-size: 7px; font-weight: 600; opacity: 0.7; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    /* divider between sections */
+    .divider {
+      border: none; border-top: 1px solid #e2e8f0;
+      margin: 40px 0;
+    }
+
+    /* ── Mini calendar ── */
+    .mini-cal {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 6px; background: white;
+      border: 1px solid #e2e8f0; border-radius: 14px;
+      padding: 16px; max-width: 520px;
+    }
+    .day-header {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      color: #94a3b8; text-align: center; padding: 4px 0;
+    }
+    .day-header.sun { color: #f87171; }
+
+    .mc {
+      aspect-ratio: 1; border-radius: 7px; border: 1.5px solid transparent;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 800;
+      position: relative; overflow: hidden; cursor: pointer;
+    }
+    .mc-num {
+      font-size: 8px; font-weight: 500;
+      position: absolute; top: 3px; left: 4px; opacity: 0.6;
+    }
+    .mc-badge {
+      position: absolute; bottom: 3px;
+      display: flex; flex-direction: column; align-items: center;
+      line-height: 1.1;
+      background: rgba(0,0,0,0.11);
+      padding: 1px 4px; border-radius: 6px;
+      z-index: 3; color: inherit;
+    }
+    .mc-badge .n { font-size: 7.5px; font-weight: 800; }
+    .mc-badge .u { font-size: 5.5px; font-weight: 600; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.03em; }
+
+    .mc-p    { background:#d1fae5; border-color:#6ee7b7; color:#065f46; }
+    .mc-a    { background:#fee2e2; border-color:#fca5a5; color:#991b1b; }
+    .mc-so   { background:#f1f5f9; border-color:#cbd5e1; color:#94a3b8; }
+    .mc-hdl  { background:linear-gradient(135deg,#fde68a 50%,#bbf7d0 50%); border-color:#86efac; color:#065f46; }
+    .mc-hde  { background:linear-gradient(135deg,#bbf7d0 50%,#fde68a 50%); border-color:#86efac; color:#065f46; }
+    .mc-ot   { background:#dbeafe; border-color:#93c5fd; color:#1e40af; }
+    .mc-late { background:#fef3c7; border-color:#fcd34d; color:#92400e; }
+    .mc-hol  { background:#fce7f3; border-color:#f9a8d4; color:#9d174d; }
+    .mc-fu   { background:#f8fafc; border-color:#f1f5f9; color:#cbd5e1; }
+  </style>
+</head>
+<body>
+
+  <h1>Half-Day Calendar — Style B (Stacked)</h1>
+  <p class="sub">Diagonal split &nbsp;|&nbsp; Amber = missed half &nbsp;|&nbsp; Green = worked half</p>
+
+  <!-- ── Under 1 hour ── -->
+  <section>
+    <h2>Under 1 hour</h2>
+    <div class="row">
+
+      <div class="cell-wrap">
+        <div class="cell present">
+          <span class="day-num">15</span>
+          <span class="status-label">P</span>
+        </div>
+        <div class="label">Present</div>
+      </div>
+
+      <div class="cell-wrap">
+        <div class="cell hdl-diag">
+          <span class="day-num">15</span>
+          <span class="status-label">HD/L</span>
+          <span class="badge"><span class="num">23</span><span class="unit">min</span></span>
+        </div>
+        <div class="label">HD/L<small>late 23m</small></div>
+      </div>
+
+      <div class="cell-wrap">
+        <div class="cell hde-diag">
+          <span class="day-num">15</span>
+          <span class="status-label">HD/E</span>
+          <span class="badge"><span class="num">41</span><span class="unit">min</span></span>
+        </div>
+        <div class="label">HD/E<small>early 41m</small></div>
+      </div>
+
+      <div class="cell-wrap">
+        <div class="cell ot-cell">
+          <span class="day-num">15</span>
+          <span class="status-label">OT</span>
+          <span class="badge"><span class="num">52</span><span class="unit">min</span></span>
+        </div>
+        <div class="label">OT<small>52m</small></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Over 1 hour ── -->
+  <section>
+    <h2>Over 1 hour — format options</h2>
+    <div class="row">
+
+      <!-- Option i: 1h 23m on two lines -->
+      <div class="cell-wrap">
+        <div class="cell hdl-diag">
+          <span class="day-num">15</span>
+          <span class="status-label">HD/L</span>
+          <span class="badge"><span class="num">1h 23m</span><span class="unit">late</span></span>
+        </div>
+        <div class="label">i &nbsp;1h 23m<small>full label</small></div>
+      </div>
+
+      <!-- Option ii: 1:23 / h:m -->
+      <div class="cell-wrap">
+        <div class="cell hdl-diag">
+          <span class="day-num">15</span>
+          <span class="status-label">HD/L</span>
+          <span class="badge"><span class="num">1:23</span><span class="unit">h : m</span></span>
+        </div>
+        <div class="label">ii &nbsp;1:23<small>clock style</small></div>
+      </div>
+
+      <!-- Option iii: 83 / min (just keep counting) -->
+      <div class="cell-wrap">
+        <div class="cell hdl-diag">
+          <span class="day-num">15</span>
+          <span class="status-label">HD/L</span>
+          <span class="badge"><span class="num">83</span><span class="unit">min</span></span>
+        </div>
+        <div class="label">iii &nbsp;83<small>plain minutes</small></div>
+      </div>
+
+      <!-- OT > 1hr option i -->
+      <div class="cell-wrap">
+        <div class="cell ot-cell">
+          <span class="day-num">15</span>
+          <span class="status-label">OT</span>
+          <span class="badge"><span class="num">1h 15m</span><span class="unit">over</span></span>
+        </div>
+        <div class="label">OT &nbsp;i<small>1h 15m</small></div>
+      </div>
+
+      <!-- OT > 1hr option ii -->
+      <div class="cell-wrap">
+        <div class="cell ot-cell">
+          <span class="day-num">15</span>
+          <span class="status-label">OT</span>
+          <span class="badge"><span class="num">1:15</span><span class="unit">h : m</span></span>
+        </div>
+        <div class="label">OT &nbsp;ii<small>1:15</small></div>
+      </div>
+
+      <!-- OT > 1hr option iii -->
+      <div class="cell-wrap">
+        <div class="cell ot-cell">
+          <span class="day-num">15</span>
+          <span class="status-label">OT</span>
+          <span class="badge"><span class="num">75</span><span class="unit">min</span></span>
+        </div>
+        <div class="label">OT &nbsp;iii<small>75 min</small></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Mini calendar ── -->
+  <section>
+    <h2>In-context — Mini Calendar</h2>
+    <div class="mini-cal">
+      <div class="day-header sun">Sun</div>
+      <div class="day-header">Mon</div>
+      <div class="day-header">Tue</div>
+      <div class="day-header">Wed</div>
+      <div class="day-header">Thu</div>
+      <div class="day-header">Fri</div>
+      <div class="day-header">Sat</div>
+
+      <div class="mc mc-so"><span class="mc-num">1</span>SO</div>
+      <div class="mc mc-p"><span class="mc-num">2</span>P</div>
+      <div class="mc mc-hdl"><span class="mc-num">3</span>HD/L<span class="mc-badge"><span class="n">23</span><span class="u">min</span></span></div>
+      <div class="mc mc-p"><span class="mc-num">4</span>P</div>
+      <div class="mc mc-hde"><span class="mc-num">5</span>HD/E<span class="mc-badge"><span class="n">41</span><span class="u">min</span></span></div>
+      <div class="mc mc-ot"><span class="mc-num">6</span>OT<span class="mc-badge"><span class="n">1:15</span><span class="u">h:m</span></span></div>
+      <div class="mc mc-a"><span class="mc-num">7</span>L</div>
+
+      <div class="mc mc-so"><span class="mc-num">8</span>SO</div>
+      <div class="mc mc-late"><span class="mc-num">9</span>Late</div>
+      <div class="mc mc-p"><span class="mc-num">10</span>P</div>
+      <div class="mc mc-hdl"><span class="mc-num">11</span>HD/L<span class="mc-badge"><span class="n">1:23</span><span class="u">h:m</span></span></div>
+      <div class="mc mc-p"><span class="mc-num">12</span>P</div>
+      <div class="mc mc-hde"><span class="mc-num">13</span>HD/E<span class="mc-badge"><span class="n">30</span><span class="u">min</span></span></div>
+      <div class="mc mc-p"><span class="mc-num">14</span>P</div>
+
+      <div class="mc mc-so"><span class="mc-num">15</span>SO</div>
+      <div class="mc mc-hol"><span class="mc-num">16</span>H</div>
+      <div class="mc mc-p"><span class="mc-num">17</span>P</div>
+      <div class="mc mc-p"><span class="mc-num">18</span>P</div>
+      <div class="mc mc-hdl"><span class="mc-num">19</span>HD/L<span class="mc-badge"><span class="n">47</span><span class="u">min</span></span></div>
+      <div class="mc mc-ot"><span class="mc-num">20</span>OT<span class="mc-badge"><span class="n">38</span><span class="u">min</span></span></div>
+      <div class="mc mc-a"><span class="mc-num">21</span>L</div>
+
+      <div class="mc mc-so"><span class="mc-num">22</span>SO</div>
+      <div class="mc mc-p"><span class="mc-num">23</span>P</div>
+      <div class="mc mc-hde"><span class="mc-num">24</span>HD/E<span class="mc-badge"><span class="n">55</span><span class="u">min</span></span></div>
+      <div class="mc mc-p"><span class="mc-num">25</span>P</div>
+      <div class="mc mc-hdl"><span class="mc-num">26</span>HD/L<span class="mc-badge"><span class="n">2:05</span><span class="u">h:m</span></span></div>
+      <div class="mc mc-p"><span class="mc-num">27</span>P</div>
+      <div class="mc mc-fu"><span class="mc-num">28</span></div>
+
+      <div class="mc mc-so"><span class="mc-num">29</span>SO</div>
+      <div class="mc mc-p"><span class="mc-num">30</span>P</div>
+      <div class="mc mc-fu"><span class="mc-num">31</span></div>
+      <div class="mc mc-fu"></div>
+      <div class="mc mc-fu"></div>
+      <div class="mc mc-fu"></div>
+      <div class="mc mc-fu"></div>
+    </div>
+  </section>
+
+</body>
+</html>

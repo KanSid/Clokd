@@ -30,7 +30,6 @@ interface EmployeeReport {
   daysPresent: number;
   daysLeave: number;
   sundaysWorked: number;
-  lateDays: number;
   earlyLeaveDays: number;
   overtimeMinutes: number;
   overtimeFormatted: string;
@@ -76,7 +75,6 @@ export default function ReportsPage() {
         daysPresent: metrics.totalWorkingDays,
         daysLeave: metrics.totalLeaves,
         sundaysWorked: metrics.totalSundaysWorked,
-        lateDays: metrics.lateDays,
         earlyLeaveDays: metrics.earlyLeaveDays,
         overtimeMinutes: metrics.overtimeMinutes,
         overtimeFormatted: metrics.overtimeFormatted,
@@ -89,7 +87,7 @@ export default function ReportsPage() {
     // Daily late data
     const dailyMap: Record<string, number> = {};
     allRecords.forEach((rec) => {
-      if (rec.late_by && rec.late_by > 10) {
+      if (rec.late_by && rec.late_by > 0) {
         const d = rec.attendance_date;
         dailyMap[d] = (dailyMap[d] || 0) + 1;
       }
@@ -126,7 +124,6 @@ export default function ReportsPage() {
       "Days Present": r.daysPresent,
       "Days Leave": r.daysLeave,
       "Sundays Worked": r.sundaysWorked,
-      "Late Days": r.lateDays,
       "Early Left Days": r.earlyLeaveDays,
       "Overtime (HH:MM)": r.overtimeFormatted,
       "Attendance %": r.attendancePct,
@@ -149,7 +146,6 @@ export default function ReportsPage() {
         "Days Present": dept.totalPresent,
         "Days Leave": dept.totalLeave,
         "Sundays Worked": dept.totalSundaysWorked,
-        "Late Days": dept.totalLate,
         "Early Left Days": dept.totalEarlyLeave,
         "Overtime (HH:MM)": dept.totalOvertimeFormatted,
         "Attendance %": `${dept.avgAttendance}% avg`,
@@ -177,12 +173,6 @@ export default function ReportsPage() {
   };
 
   // Chart data
-  const topLateEmployees = [...reports]
-    .filter((r) => r.lateDays > 0)
-    .sort((a, b) => b.lateDays - a.lateDays)
-    .slice(0, 10)
-    .map((r) => ({ name: r.employee.employee_name, lateDays: r.lateDays }));
-
   const topOvertimeEmployees = [...reports]
     .filter((r) => r.overtimeMinutes > 0)
     .sort((a, b) => b.overtimeMinutes - a.overtimeMinutes)
@@ -205,9 +195,8 @@ export default function ReportsPage() {
   // Performance scores
   const performanceData = reports.map((r) => {
     const attScore = r.attendancePct;
-    const lateRate = reports.length > 0 ? r.lateDays / 30 : 0;
     const otScore = Math.min(r.overtimeMinutes / 600, 1) * 100;
-    const score = Math.round(attScore * 0.4 + (1 - lateRate) * 100 * 0.3 + otScore * 0.3);
+    const score = Math.round(attScore * 0.6 + otScore * 0.4);
     return { ...r, performanceScore: Math.min(score, 100) };
   }).sort((a, b) => b.performanceScore - a.performanceScore);
 
@@ -230,7 +219,6 @@ export default function ReportsPage() {
       const totalPresent = emps.reduce((s, r) => s + r.daysPresent, 0);
       const totalLeave = emps.reduce((s, r) => s + r.daysLeave, 0);
       const totalSundaysWorked = emps.reduce((s, r) => s + r.sundaysWorked, 0);
-      const totalLate = emps.reduce((s, r) => s + r.lateDays, 0);
       const totalEarlyLeave = emps.reduce((s, r) => s + r.earlyLeaveDays, 0);
       const totalOT = emps.reduce((s, r) => s + r.overtimeMinutes, 0);
       const avgAtt = emps.length > 0 ? Math.round(emps.reduce((s, r) => s + r.attendancePct, 0) / emps.length) : 0;
@@ -240,7 +228,6 @@ export default function ReportsPage() {
         totalPresent,
         totalLeave,
         totalSundaysWorked,
-        totalLate,
         totalEarlyLeave,
         totalOvertimeMinutes: totalOT,
         totalOvertimeFormatted: formatMinutes(totalOT),
@@ -254,7 +241,6 @@ export default function ReportsPage() {
     department: d.deptName,
     "Avg Attendance %": d.avgAttendance,
     "Total Leave": d.totalLeave,
-    "Total Late": d.totalLate,
   }));
 
   // Summary stats
@@ -343,7 +329,6 @@ export default function ReportsPage() {
                       <th className="px-4 py-3 font-medium">Present</th>
                       <th className="px-4 py-3 font-medium">Leave</th>
                       <th className="px-4 py-3 font-medium">Sun Worked</th>
-                      <th className="px-4 py-3 font-medium">Late Days</th>
                       <th className="px-4 py-3 font-medium">Early Left</th>
                       <th className="px-4 py-3 font-medium">Overtime</th>
                       <th className="px-4 py-3 font-medium">Attendance %</th>
@@ -357,9 +342,6 @@ export default function ReportsPage() {
                         <td className="px-4 py-3 text-green-700 font-medium">{r.daysPresent}</td>
                         <td className="px-4 py-3 text-red-600">{r.daysLeave}</td>
                         <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
-                        <td className="px-4 py-3">
-                          {r.lateDays > 0 ? <span className="text-amber-600 font-medium">{r.lateDays}</span> : "0"}
-                        </td>
                         <td className="px-4 py-3">
                           {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
                         </td>
@@ -407,7 +389,6 @@ export default function ReportsPage() {
                       <Legend />
                       <Bar dataKey="Avg Attendance %" fill="#6366f1" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="Total Leave" fill="#f43f5e" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="Total Late" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -439,10 +420,6 @@ export default function ReportsPage() {
                       <div className="rounded-lg bg-purple-50 p-3">
                         <p className="text-xs font-medium text-purple-600">Sun Worked</p>
                         <p className="text-lg font-bold text-purple-700">{dept.totalSundaysWorked}</p>
-                      </div>
-                      <div className="rounded-lg bg-amber-50 p-3">
-                        <p className="text-xs font-medium text-amber-600">Total Late</p>
-                        <p className="text-lg font-bold text-amber-700">{dept.totalLate}</p>
                       </div>
                       <div className="rounded-lg bg-teal-50 p-3">
                         <p className="text-xs font-medium text-teal-600">Early Left</p>
@@ -480,7 +457,6 @@ export default function ReportsPage() {
                           <th className="px-4 py-3 font-medium">Present</th>
                           <th className="px-4 py-3 font-medium">Leave</th>
                           <th className="px-4 py-3 font-medium">Sun Worked</th>
-                          <th className="px-4 py-3 font-medium">Late Days</th>
                           <th className="px-4 py-3 font-medium">Early Left</th>
                           <th className="px-4 py-3 font-medium">Overtime</th>
                           <th className="px-4 py-3 font-medium">Attendance %</th>
@@ -493,9 +469,6 @@ export default function ReportsPage() {
                             <td className="px-4 py-3 text-green-700 font-medium">{r.daysPresent}</td>
                             <td className="px-4 py-3 text-red-600">{r.daysLeave}</td>
                             <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
-                            <td className="px-4 py-3">
-                              {r.lateDays > 0 ? <span className="text-amber-600 font-medium">{r.lateDays}</span> : "0"}
-                            </td>
                             <td className="px-4 py-3">
                               {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
                             </td>
@@ -536,23 +509,6 @@ export default function ReportsPage() {
                   </ResponsiveContainer>
                 ) : (
                   <p className="py-12 text-center text-slate-400">No late data available</p>
-                )}
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="mb-4 text-lg font-semibold text-slate-900">Top 10 Late Employees</h3>
-                {topLateEmployees.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={topLateEmployees} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={120} />
-                      <Tooltip />
-                      <Bar dataKey="lateDays" fill="#f59e0b" name="Late Days" radius={[0, 4, 4, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="py-12 text-center text-slate-400">No late employees</p>
                 )}
               </div>
 
@@ -641,7 +597,6 @@ export default function ReportsPage() {
                     <th className="px-4 py-3 font-medium">Employee</th>
                     <th className="px-4 py-3 font-medium">Department</th>
                     <th className="px-4 py-3 font-medium">Attendance %</th>
-                    <th className="px-4 py-3 font-medium">Late Days</th>
                     <th className="px-4 py-3 font-medium">Early Left</th>
                     <th className="px-4 py-3 font-medium">Overtime</th>
                     <th className="px-4 py-3 font-medium">Performance Score</th>
@@ -654,7 +609,6 @@ export default function ReportsPage() {
                       <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
                       <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
                       <td className="px-4 py-3">{r.attendancePct}%</td>
-                      <td className="px-4 py-3">{r.lateDays}</td>
                       <td className="px-4 py-3">
                         {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
                       </td>

@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase/client";
 import type { Employee, AttendanceRecord, Holiday } from "@/lib/types";
 import {
   calculateEmployeeMetrics,
-  calculateEarlyByForRecord,
   formatTime,
   formatDate,
   formatDuration,
@@ -18,7 +17,6 @@ import {
   User,
   Clock,
   CalendarDays,
-  AlertTriangle,
   Timer,
   Sun,
   Pencil,
@@ -28,6 +26,26 @@ import {
 type EmployeeWithDept = Omit<Employee, 'department'> & {
   department?: { dept_name: string } | null;
 };
+
+const ATTENDANCE_STATUS_OPTIONS = [
+  { label: "Present",           code: "P"    },
+  { label: "Absent",            code: "A"    },
+  { label: "Half Day - Late",   code: "HD/L" },
+  { label: "Half Day - Early",  code: "HD/E" },
+  { label: "Missed Punch",      code: "MP"   },
+  { label: "Week Off",          code: "WO"   },
+  { label: "Week Off Present",  code: "WOP"  },
+  { label: "Half Present",      code: "½P"   },
+  { label: "Leave",             code: "L"    },
+] as const;
+
+function statusCodeToLabel(code: string | null): string {
+  return ATTENDANCE_STATUS_OPTIONS.find((o) => o.code === code)?.label ?? code ?? "";
+}
+
+function labelToCode(label: string): string {
+  return ATTENDANCE_STATUS_OPTIONS.find((o) => o.label === label)?.code ?? label;
+}
 
 export default function EmployeeDetailPage() {
   const params = useParams();
@@ -45,7 +63,7 @@ export default function EmployeeDetailPage() {
 
   // Edit attendance modal state
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
-  const [editForm, setEditForm] = useState({ in_time: "", out_time: "", status: "", is_on_leave: false });
+  const [editForm, setEditForm] = useState({ in_time: "", out_time: "", statusLabel: "", is_on_leave: false });
   const [saving, setSaving] = useState(false);
 
   const fetchEmployee = useCallback(async () => {
@@ -106,7 +124,7 @@ export default function EmployeeDetailPage() {
     setEditForm({
       in_time: rec.in_time ? rec.in_time.slice(0, 16) : "",
       out_time: rec.out_time ? rec.out_time.slice(0, 16) : "",
-      status: rec.status ?? "",
+      statusLabel: statusCodeToLabel(rec.status_code ?? rec.status),
       is_on_leave: rec.is_on_leave ?? false,
     });
   };
@@ -121,24 +139,14 @@ export default function EmployeeDetailPage() {
       .eq("id", editingRecord.id)
       .single();
 
+    const statusCode = labelToCode(editForm.statusLabel);
     const updateData: Record<string, unknown> = {
-      status: editForm.status,
+      status: editForm.statusLabel,
+      status_code: statusCode,
       is_on_leave: editForm.is_on_leave,
     };
     if (editForm.in_time) updateData.in_time = editForm.in_time;
-    if (editForm.out_time) {
-      updateData.out_time = editForm.out_time;
-      // Recalculate early_by when out_time changes
-      if (employee?.out_time) {
-        const earlyBy = calculateEarlyByForRecord(
-          editForm.out_time,
-          employee.out_time,
-          editingRecord.attendance_date,
-          employee.department?.dept_name ?? undefined
-        );
-        updateData.early_by = earlyBy > 0 ? earlyBy : 0;
-      }
-    }
+    if (editForm.out_time) updateData.out_time = editForm.out_time;
 
     const { error } = await supabase
       .from("attendance")
@@ -192,7 +200,7 @@ export default function EmployeeDetailPage() {
           <div className="flex-1 space-y-1">
             <h1 className="text-2xl font-bold text-slate-900">{employee.employee_name}</h1>
             <p className="text-sm text-slate-500">
-              Code: {employee.employee_code} &middot; {employee.department?.dept_name ?? "No Dept"} &middot; {employee.designation || "N/A"}
+              {employee.emp_id ?? employee.employee_code} &middot; {employee.department?.dept_name ?? "No Dept"} &middot; {employee.designation || "N/A"}
             </p>
             <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-600">
               <span className="flex items-center gap-1">
@@ -215,7 +223,7 @@ export default function EmployeeDetailPage() {
 
       {/* Metrics Cards */}
       {metrics && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-green-600">
               <CalendarDays className="h-5 w-5" />
@@ -237,14 +245,7 @@ export default function EmployeeDetailPage() {
             </div>
             <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.totalLeaves}</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-amber-600">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="text-xs font-medium">Late Days</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.lateDays}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+<div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-teal-600">
               <LogOut className="h-5 w-5" />
               <span className="text-xs font-medium">Early Left</span>
@@ -321,7 +322,7 @@ export default function EmployeeDetailPage() {
                           ? "bg-green-100 text-green-700"
                           : "bg-slate-100 text-slate-600"
                       }`}>
-                        {rec.is_on_leave ? "Leave" : rec.status ?? "Unknown"}
+                        {rec.is_on_leave ? "Leave" : statusCodeToLabel(rec.status_code ?? rec.status)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -385,12 +386,16 @@ export default function EmployeeDetailPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
-                <input
-                  type="text"
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                <select
+                  value={editForm.statusLabel}
+                  onChange={(e) => setEditForm({ ...editForm, statusLabel: e.target.value })}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-                />
+                >
+                  <option value="">— Select status —</option>
+                  {ATTENDANCE_STATUS_OPTIONS.map((o) => (
+                    <option key={o.code} value={o.label}>{o.label} ({o.code})</option>
+                  ))}
+                </select>
               </div>
               <div className="flex items-center gap-2">
                 <input

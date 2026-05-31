@@ -8,6 +8,7 @@ export interface Employee {
   employee_id: number;
   employee_name: string;
   employee_code: string;
+  emp_id: string | null;
   department_id: number;
   designation: string;
   status: string;
@@ -61,7 +62,6 @@ export interface EmployeeMetrics {
   totalWorkingDays: number;
   totalSundaysWorked: number;
   totalLeaves: number;
-  lateDays: number;
   earlyLeaveDays: number;
   overtimeMinutes: number;
   overtimeFormatted: string;
@@ -87,6 +87,8 @@ export type DayStatus =
   | 'absent'
   | 'leave'
   | 'half-day'
+  | 'half-day-late'
+  | 'half-day-early'
   | 'late'
   | 'late-and-overtime'
   | 'overtime'

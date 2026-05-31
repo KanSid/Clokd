@@ -7,7 +7,6 @@ import type { Employee, Department } from "@/lib/types";
 import { formatTime } from "@/lib/utils";
 
 type EmployeeWithDept = Omit<Employee, 'department'> & {
-  emp_id?: string | null;
   department?: { dept_name: string } | null;
 };
 
@@ -284,14 +283,12 @@ export default function EmployeesPage() {
   const filteredEmployees = useMemo(() => {
     let filtered = employees;
 
-    // Filter by department
     if (selectedDept) {
       filtered = filtered.filter(
         (emp) => String(emp.department_id) === selectedDept
       );
     }
 
-    // Filter by search
     if (search.trim()) {
       const q = search.toLowerCase();
       filtered = filtered.filter(
@@ -299,12 +296,39 @@ export default function EmployeesPage() {
           emp.employee_name?.toLowerCase().includes(q) ||
           emp.employee_code?.toLowerCase().includes(q) ||
           emp.designation?.toLowerCase().includes(q) ||
+          emp.emp_id?.toLowerCase().includes(q) ||
           emp.department?.dept_name?.toLowerCase().includes(q)
       );
     }
 
     return filtered;
   }, [employees, search, selectedDept]);
+
+  const groupedEmployees = useMemo(() => {
+    const groups: { deptName: string; employees: EmployeeWithDept[] }[] = [];
+    const seen = new Map<string, EmployeeWithDept[]>();
+
+    for (const emp of filteredEmployees) {
+      const key = emp.department?.dept_name ?? "No Department";
+      if (!seen.has(key)) {
+        seen.set(key, []);
+        groups.push({ deptName: key, employees: seen.get(key)! });
+      }
+      seen.get(key)!.push(emp);
+    }
+
+    // Sort employees within each group by emp_id alphabetically, nulls last
+    for (const group of groups) {
+      group.employees.sort((a, b) => {
+        if (!a.emp_id && !b.emp_id) return 0;
+        if (!a.emp_id) return 1;
+        if (!b.emp_id) return -1;
+        return a.emp_id.localeCompare(b.emp_id);
+      });
+    }
+
+    return groups;
+  }, [filteredEmployees]);
 
   async function handleSave(data: Partial<Employee>) {
     if (isNew) {
@@ -453,11 +477,9 @@ export default function EmployeesPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 text-gray-500">
-              {/* <th className="px-4 py-3 font-medium">ID</th> */}
-                <th className="px-4 py-3 font-medium">Employee ID</th>
+                <th className="px-4 py-3 font-medium">Emp ID</th>
                 <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Department</th>
-                {/* <th className="px-4 py-3 font-medium">Designation</th> */}
+                <th className="px-4 py-3 font-medium">Designation</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Expected In</th>
                 <th className="px-4 py-3 font-medium">Expected Out</th>
@@ -465,123 +487,91 @@ export default function EmployeesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredEmployees.length === 0 ? (
+              {groupedEmployees.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={9}
-                    className="px-4 py-8 text-center text-gray-400"
-                  >
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
                     No employees found
                   </td>
                 </tr>
               ) : (
-                filteredEmployees.map((emp) => (
-                  <tr
-                    key={emp.employee_id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                  { /* <td className="px-4 py-3 text-gray-500">
-                      {emp.employee_id}
-                    </td>*/}
-                    <td className="px-4 py-3">{emp.emp_id ?? "-"}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      {emp.employee_name}
-                    </td>
-                    <td className="px-4 py-3">
-                      {emp.department?.dept_name ?? "-"}
-                    </td>
-                    {/* <td className="px-4 py-3">{emp.designation ?? "-"}</td> */}
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                          emp.status === "Active"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
+                groupedEmployees.map((group) => (
+                  <>
+                    <tr key={`dept-${group.deptName}`} className="bg-indigo-50">
+                      <td
+                        colSpan={7}
+                        className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-indigo-600"
                       >
-                        {emp.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {emp.in_time ? formatTime(emp.in_time) : "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {emp.out_time ? formatTime(emp.out_time) : "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        {/* Edit */}
-                        <button
-                          onClick={() => openEditModal(emp)}
-                          className="rounded p-1 text-indigo-600 hover:bg-indigo-50"
-                          title="Edit"
-                        >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
+                        {group.deptName} ({group.employees.length})
+                      </td>
+                    </tr>
+                    {group.employees.map((emp) => (
+                      <tr
+                        key={emp.employee_id}
+                        className="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td className="px-4 py-3 text-gray-500 tabular-nums">
+                          {emp.emp_id ?? "—"}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          {emp.employee_name}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">
+                          {emp.designation ?? "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                              emp.status === "Working"
+                                ? "bg-green-100 text-green-700"
+                                : emp.status === "Resigned"
+                                ? "bg-red-100 text-red-600"
+                                : "bg-gray-100 text-gray-600"
+                            }`}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                            />
-                          </svg>
-                        </button>
-                        {/* View */}
-                        <button
-                          onClick={() =>
-                            router.push(
-                              `/dashboard/employees/${emp.employee_id}`
-                            )
-                          }
-                          className="rounded p-1 text-gray-500 hover:bg-gray-100"
-                          title="View"
-                        >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                        </button>
-                        {/* Delete */}
-                        <button
-                          onClick={() => openDeleteConfirm(emp.employee_id)}
-                          className="rounded p-1 text-red-500 hover:bg-red-50"
-                          title="Delete"
-                        >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                            {emp.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {emp.in_time ? formatTime(emp.in_time) : "-"}
+                        </td>
+                        <td className="px-4 py-3">
+                          {emp.out_time ? formatTime(emp.out_time) : "-"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => openEditModal(emp)}
+                              className="rounded p-1 text-indigo-600 hover:bg-indigo-50"
+                              title="Edit"
+                            >
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => router.push(`/dashboard/employees/${emp.employee_id}`)}
+                              className="rounded p-1 text-gray-500 hover:bg-gray-100"
+                              title="View"
+                            >
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => openDeleteConfirm(emp.employee_id)}
+                              className="rounded p-1 text-red-500 hover:bg-red-50"
+                              title="Delete"
+                            >
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </>
                 ))
               )}
             </tbody>
