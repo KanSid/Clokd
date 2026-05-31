@@ -159,7 +159,7 @@ export default function ReportsPage() {
           "Days Present": r.daysPresent,
           "Days Leave": r.daysLeave,
           "Sundays Worked": r.sundaysWorked,
-          "Late Days": r.lateDays,
+
           "Early Left Days": r.earlyLeaveDays,
           "Overtime (HH:MM)": r.overtimeFormatted,
           "Attendance %": `${r.attendancePct}%`,
