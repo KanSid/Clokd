@@ -22,17 +22,6 @@ interface DayDetailModalProps {
   onClose: () => void;
 }
 
-function extractTimeFromTimestamp(timestamp: string): { hours: number; minutes: number } {
-  const timePart = timestamp.split(/[T ]/)[1];
-  if (!timePart) return { hours: 0, minutes: 0 };
-  const parts = timePart.split(":");
-  return { hours: parseInt(parts[0], 10), minutes: parseInt(parts[1], 10) };
-}
-
-function parseTimeStr(timeStr: string): { hours: number; minutes: number } {
-  const parts = timeStr.split(":");
-  return { hours: parseInt(parts[0], 10), minutes: parseInt(parts[1], 10) };
-}
 
 export default function DayDetailModal({
   dayInfo,
@@ -56,29 +45,10 @@ export default function DayDetailModal({
     year: "numeric",
   });
 
-  // Calculate late minutes
-  let lateMinutes = 0;
-  if (isLate && rec?.in_time) {
-    const actualIn = extractTimeFromTimestamp(rec.in_time);
-    const expectedIn = parseTimeStr(effectiveInTime);
-    lateMinutes = (actualIn.hours * 60 + actualIn.minutes) - (expectedIn.hours * 60 + expectedIn.minutes);
-  }
-
-  // Calculate early leave minutes
-  let earlyLeaveMinutes = 0;
-  if (isEarlyLeave && rec?.out_time) {
-    const actualOut = extractTimeFromTimestamp(rec.out_time);
-    const expectedOut = parseTimeStr(effectiveOutTime);
-    earlyLeaveMinutes = (expectedOut.hours * 60 + expectedOut.minutes) - (actualOut.hours * 60 + actualOut.minutes);
-  }
-
-  // Calculate overtime minutes
-  let overtimeMinutes = 0;
-  if (isOvertime && rec?.out_time) {
-    const actualOut = extractTimeFromTimestamp(rec.out_time);
-    const expectedOut = parseTimeStr(effectiveOutTime);
-    overtimeMinutes = (actualOut.hours * 60 + actualOut.minutes) - (expectedOut.hours * 60 + expectedOut.minutes);
-  }
+  // Use DB-computed values directly
+  const lateMinutes      = rec?.late_by  ?? 0;
+  const earlyLeaveMinutes = rec?.early_by ?? 0;
+  const overtimeMinutes  = rec?.overtime  ?? 0;
 
   const getStatusBadge = () => {
     const badges: { label: string; color: string; icon: React.ReactNode }[] = [];
@@ -113,15 +83,12 @@ export default function DayDetailModal({
       case "half-day":
         badges.push({ label: "Half Day", color: "bg-orange-100 text-orange-800", icon: <Clock className="h-3.5 w-3.5" /> });
         break;
+      case "missed-punch":
+        badges.push({ label: "Missed Punch", color: "bg-slate-700 text-white", icon: <AlertTriangle className="h-3.5 w-3.5" /> });
+        break;
       case "late":
       case "late-and-overtime":
         badges.push({ label: "Present (Late)", color: "bg-amber-100 text-amber-800", icon: <AlertTriangle className="h-3.5 w-3.5" /> });
-        break;
-      case "sunday-worked":
-        badges.push({ label: "Sunday Worked", color: "bg-purple-100 text-purple-800", icon: <Sun className="h-3.5 w-3.5" /> });
-        break;
-      case "sunday-off":
-        badges.push({ label: "Sunday Off", color: "bg-slate-100 text-slate-600", icon: <Sun className="h-3.5 w-3.5" /> });
         break;
       case "holiday":
         break; // already added above
@@ -287,12 +254,6 @@ export default function DayDetailModal({
                   <CalendarOff className="mx-auto h-10 w-10 text-rose-400" />
                   <p className="mt-3 text-lg font-semibold text-slate-900">Leave</p>
                   <p className="mt-1 text-sm text-slate-500">No attendance record for this day</p>
-                </div>
-              ) : status === "sunday-off" ? (
-                <div>
-                  <Sun className="mx-auto h-10 w-10 text-slate-400" />
-                  <p className="mt-3 text-lg font-semibold text-slate-900">Sunday Off</p>
-                  <p className="mt-1 text-sm text-slate-500">Weekly off day</p>
                 </div>
               ) : (
                 <div>

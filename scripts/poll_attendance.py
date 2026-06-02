@@ -130,6 +130,29 @@ class Supabase:
             total += len(chunk)
         return total
 
+    def get_id_set(self, table: str, column: str) -> set[Any]:
+        """Return the set of existing values for `column` (paged)."""
+        ids: set[Any] = set()
+        url = f"{self.base}/{table}?select={column}"
+        offset = 0
+        while True:
+            h = {
+                **self.headers,
+                "Range-Unit": "items",
+                "Range": f"{offset}-{offset + BATCH - 1}",
+            }
+            r = requests.get(url, headers=h, timeout=TIMEOUT)
+            if r.status_code >= 300:
+                sys.exit(f"select {table} failed [{r.status_code}]: {r.text[:500]}")
+            chunk = r.json()
+            for row in chunk:
+                if row.get(column) is not None:
+                    ids.add(row[column])
+            if len(chunk) < BATCH:
+                break
+            offset += BATCH
+        return ids
+
 
 def sync_departments(cur: pyodbc.Cursor, sb: Supabase) -> int:
     cur.execute(
@@ -150,13 +173,18 @@ def sync_departments(cur: pyodbc.Cursor, sb: Supabase) -> int:
 
 
 def sync_employees(cur: pyodbc.Cursor, sb: Supabase) -> int:
+    """Insert NEW employees only. Existing employees are fully owned by Supabase —
+    the machine never overwrites their name, department, or any other field."""
     cur.execute(
         "SELECT EmployeeId, EmployeeName, EmployeeCode, DepartmentId, Designation, Status "
         "FROM Employees WHERE RecordStatus IS NULL OR RecordStatus <> 0"
     )
+    existing = sb.get_id_set("employees", "employee_id")
     now_iso = datetime.utcnow().isoformat() + "Z"
     rows = []
     for r in rows_to_dicts(cur):
+        if r["EmployeeId"] in existing:
+            continue  # already in Supabase → leave it untouched
         rows.append(
             {
                 "employee_id": r["EmployeeId"],
@@ -168,7 +196,7 @@ def sync_employees(cur: pyodbc.Cursor, sb: Supabase) -> int:
                 "synced_at": now_iso,
             }
         )
-    return sb.upsert("employees", rows, on_conflict="employee_id")
+    return sb.insert("employees", rows)
 
 
 def _coerce_dt(v: Any) -> str | None:
@@ -179,15 +207,6 @@ def _coerce_dt(v: Any) -> str | None:
     if isinstance(v, str):
         return v
     return None
-
-
-def _coerce_int(v: Any) -> int | None:
-    if v is None:
-        return None
-    try:
-        return int(v)
-    except (TypeError, ValueError):
-        return None
 
 
 def _coerce_date(v: Any) -> str | None:
@@ -202,15 +221,6 @@ def _coerce_date(v: Any) -> str | None:
     return None
 
 
-def _is_sunday(date_str: str | None) -> bool:
-    if not date_str:
-        return False
-    try:
-        return date.fromisoformat(date_str).isoweekday() == 7
-    except ValueError:
-        return False
-
-
 def sync_attendance(
     cur: pyodbc.Cursor,
     sb: Supabase,
@@ -218,14 +228,17 @@ def sync_attendance(
     start_date: str | None = None,
     end_date: str | None = None,
 ) -> int:
+    # Pull only the raw inputs + the machine's classification seed. Derived metrics
+    # (Duration, LateBy, EarlyBy, OverTime, ShiftId) are recomputed by the DB trigger,
+    # and the employee name/code are resolved from Supabase via employee_id — so none
+    # of those are pulled here.
     sql = (
         "SELECT a.attendancelogid, a.AttendanceDate, a.EmployeeId, "
-        "e.EmployeeName, e.EmployeeCode, "
-        "a.InTime, a.OutTime, a.Duration, a.LateBy, a.EarlyBy, "
-        "a.IsOnLeave, a.LeaveType, a.Status, a.StatusCode, a.OverTime, "
-        "a.ShiftId, a.Present, a.Absent, a.PunchRecords, "
+        "a.InTime, a.OutTime, "
+        "a.IsOnLeave, a.LeaveType, a.Status, a.StatusCode, "
+        "a.Present, a.Absent, a.PunchRecords, "
         "a.MissedInPunch, a.MissedOutPunch "
-        "FROM AttendanceLogs a LEFT JOIN Employees e ON a.EmployeeId = e.EmployeeId"
+        "FROM AttendanceLogs a"
     )
     params: list[Any] = []
     if start_date and end_date:
@@ -252,19 +265,12 @@ def sync_attendance(
                 "attendance_log_id": r["attendancelogid"],
                 "attendance_date": d,
                 "employee_id": r["EmployeeId"],
-                "employee_name": r["EmployeeName"],
-                "employee_code": r["EmployeeCode"],
                 "in_time": _coerce_dt(r["InTime"]),
                 "out_time": _coerce_dt(r["OutTime"]),
-                "duration": _coerce_int(r["Duration"]),
-                "late_by": _coerce_int(r["LateBy"]),
-                "early_by": _coerce_int(r["EarlyBy"]),
                 "is_on_leave": bool(r["IsOnLeave"]) if r["IsOnLeave"] is not None else False,
                 "leave_type": r["LeaveType"],
                 "status": r["Status"],
                 "status_code": r["StatusCode"],
-                "overtime": None if _is_sunday(d) else _coerce_int(r["OverTime"]),
-                "shift_id": _coerce_int(r["ShiftId"]),
                 "present": r["Present"],
                 "absent": r["Absent"],
                 "punch_records": r["PunchRecords"],
@@ -334,7 +340,7 @@ def main() -> None:
             n = sync_departments(cur, sb)
             print(f"departments upserted: {n}")
             n = sync_employees(cur, sb)
-            print(f"employees upserted: {n}")
+            print(f"new employees inserted: {n}")
         n = sync_attendance(cur, sb, source_db=mdb.name, start_date=args.start, end_date=args.end)
         print(f"attendance inserted: {n}")
         if not args.skip_employees:

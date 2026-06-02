@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import type { Employee, AttendanceRecord, Holiday } from "@/lib/types";
 import {
-  calculateEmployeeMetrics,
+  metricsFromRow,
+  type MonthlyMetricsRow,
   formatTime,
   formatDate,
   formatDuration,
@@ -21,6 +22,7 @@ import {
   Sun,
   Pencil,
   LogOut,
+  AlertTriangle,
 } from "lucide-react";
 
 type EmployeeWithDept = Omit<Employee, 'department'> & {
@@ -43,6 +45,13 @@ function statusCodeToLabel(code: string | null): string {
   return ATTENDANCE_STATUS_OPTIONS.find((o) => o.code === code)?.label ?? code ?? "";
 }
 
+// Half-day *leave* statuses: late/early minutes are not relevant here, so they
+// are hidden. HD/L and HD/E are excluded — for those the late/early IS the point.
+const HALF_DAY_LEAVE_CODES = ["HD", "½P", "WO½P"];
+function isHalfDayLeave(code: string | null | undefined): boolean {
+  return HALF_DAY_LEAVE_CODES.includes((code ?? "").trim());
+}
+
 function labelToCode(label: string): string {
   return ATTENDANCE_STATUS_OPTIONS.find((o) => o.label === label)?.code ?? label;
 }
@@ -55,6 +64,7 @@ export default function EmployeeDetailPage() {
   const [employee, setEmployee] = useState<EmployeeWithDept | null>(null);
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [metricsRow, setMetricsRow] = useState<MonthlyMetricsRow | null>(null);
   const [loading, setLoading] = useState(true);
 
   const now = new Date();
@@ -81,7 +91,7 @@ export default function EmployeeDetailPage() {
     const endDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, "0")}-${String(endDay).padStart(2, "0")}`;
 
-    const [{ data: attData }, { data: holData }] = await Promise.all([
+    const [{ data: attData }, { data: holData }, { data: metricData }] = await Promise.all([
       supabase
         .from("attendance")
         .select("*")
@@ -95,10 +105,19 @@ export default function EmployeeDetailPage() {
         .gte("holiday_date", startDate)
         .lte("holiday_date", endDate)
         .order("holiday_date", { ascending: true }),
+      // Metrics are computed in the DB (employee_monthly_metrics view).
+      supabase
+        .from("employee_monthly_metrics")
+        .select("*")
+        .eq("employee_id", employeeId)
+        .eq("year", year)
+        .eq("month", month)
+        .maybeSingle(),
     ]);
 
     setRecords(attData ?? []);
     setHolidays(holData ?? []);
+    setMetricsRow((metricData as MonthlyMetricsRow) ?? null);
     setLoading(false);
   }, [employeeId, year, month]);
 
@@ -115,9 +134,7 @@ export default function EmployeeDetailPage() {
     setMonth(newMonth);
   };
 
-  const metrics = employee
-    ? calculateEmployeeMetrics(employee as unknown as Employee, records, year, month, employee.department?.dept_name ?? undefined, holidays)
-    : null;
+  const metrics = metricsFromRow(metricsRow);
 
   const openEditAttendance = (rec: AttendanceRecord) => {
     setEditingRecord(rec);
@@ -223,13 +240,22 @@ export default function EmployeeDetailPage() {
 
       {/* Metrics Cards */}
       {metrics && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-emerald-600">
+              <CalendarDays className="h-5 w-5" />
+              <span className="text-xs font-medium">Total P</span>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.totalP}</p>
+            <p className="text-xs text-slate-500">present-equivalent</p>
+          </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-green-600">
               <CalendarDays className="h-5 w-5" />
-              <span className="text-xs font-medium">Working Days</span>
+              <span className="text-xs font-medium">Days Present</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.totalWorkingDays}</p>
+            <p className="text-xs text-slate-500">days came to work</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-purple-600">
@@ -246,11 +272,32 @@ export default function EmployeeDetailPage() {
             <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.totalLeaves}</p>
           </div>
 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-orange-600">
+              <Clock className="h-5 w-5" />
+              <span className="text-xs font-medium">Half Day</span>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.halfDayNormal}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-teal-600">
               <LogOut className="h-5 w-5" />
-              <span className="text-xs font-medium">Early Left</span>
+              <span className="text-xs font-medium">HD/E</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.earlyLeaveDays}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-amber-600">
+              <Clock className="h-5 w-5" />
+              <span className="text-xs font-medium">HD/L</span>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.hdLateDays}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-2 text-slate-700">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="text-xs font-medium">Missed Punch</span>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.missedPunchDays}</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-blue-600">
@@ -326,12 +373,12 @@ export default function EmployeeDetailPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {rec.late_by && rec.late_by > 0 ? (
+                      {!isHalfDayLeave(rec.status_code) && rec.late_by && rec.late_by > 0 ? (
                         <span className="text-amber-600 font-medium">{rec.late_by} min</span>
                       ) : "-"}
                     </td>
                     <td className="px-4 py-3">
-                      {rec.early_by && rec.early_by > 0 ? (
+                      {!isHalfDayLeave(rec.status_code) && rec.early_by && rec.early_by > 0 ? (
                         <span className="text-teal-600 font-medium">{rec.early_by} min</span>
                       ) : "-"}
                     </td>

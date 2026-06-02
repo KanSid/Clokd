@@ -22,6 +22,9 @@ export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [employeesById, setEmployeesById] = useState<
+    Record<number, { employee_name: string | null; employee_code: string | null; department_id: number | null }>
+  >({});
   const [selectedDept, setSelectedDept] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -44,13 +47,10 @@ export default function AttendancePage() {
 
   const fetchRecords = useCallback(async () => {
     setLoading(true);
-    let query = supabase
+    const { data } = await supabase
       .from("attendance")
       .select("*")
-      .eq("attendance_date", selectedDate)
-      .order("employee_name", { ascending: true });
-
-    const { data } = await query;
+      .eq("attendance_date", selectedDate);
     setRecords(data ?? []);
     setLoading(false);
   }, [selectedDate]);
@@ -60,21 +60,49 @@ export default function AttendancePage() {
     setDepartments(data ?? []);
   }, []);
 
+  const fetchEmployees = useCallback(async () => {
+    const { data } = await supabase
+      .from("employees")
+      .select("employee_id, employee_name, employee_code, department_id");
+    const map: Record<number, { employee_name: string | null; employee_code: string | null; department_id: number | null }> = {};
+    for (const e of data ?? []) {
+      map[e.employee_id] = {
+        employee_name: e.employee_name,
+        employee_code: e.employee_code,
+        department_id: e.department_id,
+      };
+    }
+    setEmployeesById(map);
+  }, []);
+
   useEffect(() => {
     fetchRecords();
   }, [fetchRecords]);
 
   useEffect(() => {
     fetchDepartments();
-  }, [fetchDepartments]);
+    fetchEmployees();
+  }, [fetchDepartments, fetchEmployees]);
+
+  // Employee name/code come from Supabase (employees table) via employee_id,
+  // never from the attendance row's stored copy.
+  const nameOf = (rec: AttendanceRecord) =>
+    employeesById[rec.employee_id]?.employee_name ?? rec.employee_name ?? "";
+  const codeOf = (rec: AttendanceRecord) =>
+    employeesById[rec.employee_id]?.employee_code ?? rec.employee_code ?? "";
 
   // Filter records
-  const filteredRecords = records.filter((rec) => {
-    const matchesSearch = !search.trim() ||
-      rec.employee_name?.toLowerCase().includes(search.toLowerCase()) ||
-      rec.employee_code?.toLowerCase().includes(search.toLowerCase());
-    return matchesSearch;
-  });
+  const filteredRecords = records
+    .filter((rec) => {
+      const emp = employeesById[rec.employee_id];
+      const matchesDept = !selectedDept || String(emp?.department_id ?? "") === selectedDept;
+      const q = search.trim().toLowerCase();
+      const matchesSearch = !q ||
+        nameOf(rec).toLowerCase().includes(q) ||
+        codeOf(rec).toLowerCase().includes(q);
+      return matchesDept && matchesSearch;
+    })
+    .sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
 
   const presentCount = records.filter((r) => r.present && r.present > 0 && !r.is_on_leave).length;
   const leaveCount = records.filter((r) => r.is_on_leave).length;
@@ -367,8 +395,8 @@ export default function AttendancePage() {
             <tbody>
               {filteredRecords.map((rec) => (
                 <tr key={rec.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900">{rec.employee_name}</td>
-                  <td className="px-4 py-3 text-slate-500">{rec.employee_code}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900">{nameOf(rec)}</td>
+                  <td className="px-4 py-3 text-slate-500">{codeOf(rec)}</td>
                   <td className="px-4 py-3">{formatTime(rec.in_time)}</td>
                   <td className="px-4 py-3">{formatTime(rec.out_time)}</td>
                   <td className="px-4 py-3">{formatDuration(rec.duration)}</td>

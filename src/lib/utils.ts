@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import type { AttendanceRecord, Employee, EmployeeMetrics, Holiday } from "./types";
+import type { EmployeeMetrics } from "./types";
 
 /**
  * Converts total minutes into HH:MM format.
@@ -88,108 +88,41 @@ export function timeToMinutes(timeStr: string): number {
 
 
 /**
- * Calculates total overtime in minutes from DB-computed overtime field.
+ * A row from the `employee_monthly_metrics` DB view. All attendance maths is
+ * done in the backend (see the view definition) — the frontend only displays.
  */
-export function calculateOvertime(
-  _employeeOutTime: string,
-  attendanceRecords: AttendanceRecord[],
-  _departmentName?: string
-): number {
-  return attendanceRecords.reduce((sum, r) => sum + (r.overtime ?? 0), 0);
+export interface MonthlyMetricsRow {
+  employee_id: number;
+  year: number;
+  month: number;
+  total_p: number;          // SUM(present): payroll present-equivalent (P=1, half-day=0.5)
+  days_present: number;     // days physically came to work (each a whole day)
+  sundays_worked: number;   // Sundays with overtime
+  early_left: number;       // HD/E count (genuine early-leaves)
+  hd_late: number;          // HD/L count
+  half_day_normal: number;  // normal half-days (½P / HD)
+  missed_punch: number;     // MP count
+  days_leave: number;       // leaves + absences combined (excl. Sundays & holidays)
+  overtime_minutes: number; // SUM(overtime) excluding leave days
 }
 
 /**
- * Counts the number of days an employee left early.
- * Uses DB-computed early_by (no grace period).
+ * Maps a backend metrics row into the display shape. No calculation here —
+ * just shaping and formatting the values the DB view already computed.
  */
-export function calculateEarlyLeaveDays(
-  _employeeOutTime: string,
-  attendanceRecords: AttendanceRecord[],
-  _departmentName?: string
-): number {
-  return attendanceRecords.filter(
-    (r) => !r.is_on_leave && r.early_by != null && r.early_by > 0
-  ).length;
-}
-
-/**
- * Calculates all employee metrics for a given month.
- */
-export function calculateEmployeeMetrics(
-  employee: Employee,
-  attendanceRecords: AttendanceRecord[],
-  year: number,
-  month: number,
-  departmentName?: string,
-  holidays?: Holiday[]
-): EmployeeMetrics {
-  // Filter records for the given month
-  const monthRecords = attendanceRecords.filter((r) => {
-    const d = new Date(r.attendance_date + "T00:00:00");
-    return d.getFullYear() === year && d.getMonth() + 1 === month;
-  });
-
-  // Total working days (records where employee was present)
-  const totalWorkingDays = monthRecords.filter(
-    (r) => r.present !== null && r.present > 0
-  ).length;
-
-  // Sundays worked
-  const totalSundaysWorked = monthRecords.filter((r) => {
-    const d = new Date(r.attendance_date + "T00:00:00");
-    return d.getDay() === 0 && r.present !== null && r.present > 0;
-  }).length;
-
-  // Total leaves: count all non-present weekdays (Mon-Sat) that are not holidays or future
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  const holidayDates = new Set((holidays ?? []).map((h) => h.holiday_date));
-  const presentDates = new Set(
-    monthRecords
-      .filter((r) => r.present !== null && r.present > 0)
-      .map((r) => r.attendance_date)
-  );
-  const explicitLeaveDates = new Set(
-    monthRecords
-      .filter((r) => r.is_on_leave === true)
-      .map((r) => r.attendance_date)
-  );
-  const daysInMonth = new Date(year, month, 0).getDate();
-  let totalLeaves = 0;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateObj = new Date(year, month - 1, d);
-    const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    if (dateStr > todayStr) continue; // skip future dates
-    if (dateObj.getDay() === 0) continue; // skip Sundays
-    if (holidayDates.has(dateStr)) continue; // skip holidays
-    if (!presentDates.has(dateStr) || explicitLeaveDates.has(dateStr)) {
-      totalLeaves++;
-    }
-  }
-
-  const presentRecords = monthRecords.filter(
-    (r) => r.in_time && !r.is_on_leave
-  );
-
-  // Early leave days
-  const earlyLeaveDays = employee.out_time
-    ? calculateEarlyLeaveDays(employee.out_time, presentRecords, departmentName)
-    : 0;
-
-  // Overtime
-  const overtimeMinutes = employee.out_time
-    ? calculateOvertime(employee.out_time, presentRecords, departmentName)
-    : 0;
-
-  const overtimeFormatted = formatMinutes(overtimeMinutes);
-
+export function metricsFromRow(row?: MonthlyMetricsRow | null): EmployeeMetrics {
+  const ot = row?.overtime_minutes ?? 0;
   return {
-    totalWorkingDays,
-    totalSundaysWorked,
-    totalLeaves,
-    earlyLeaveDays,
-    overtimeMinutes,
-    overtimeFormatted,
+    totalP: row?.total_p ?? 0,
+    totalWorkingDays: row?.days_present ?? 0,
+    totalSundaysWorked: row?.sundays_worked ?? 0,
+    totalLeaves: row?.days_leave ?? 0,
+    earlyLeaveDays: row?.early_left ?? 0,
+    hdLateDays: row?.hd_late ?? 0,
+    halfDayNormal: row?.half_day_normal ?? 0,
+    missedPunchDays: row?.missed_punch ?? 0,
+    overtimeMinutes: ot,
+    overtimeFormatted: formatMinutes(ot),
   };
 }
 

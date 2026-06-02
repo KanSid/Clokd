@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
-import type { Employee, AttendanceRecord, Holiday } from "@/lib/types";
+import type { Employee } from "@/lib/types";
 import {
-  calculateEmployeeMetrics,
+  metricsFromRow,
+  type MonthlyMetricsRow,
   formatMinutes,
   exportToCSV,
 } from "@/lib/utils";
@@ -27,10 +28,14 @@ type TabKey = "summary" | "department" | "late" | "overtime" | "performance";
 interface EmployeeReport {
   employee: Employee;
   deptName: string;
+  totalP: number;
   daysPresent: number;
   daysLeave: number;
   sundaysWorked: number;
-  earlyLeaveDays: number;
+  halfDayNormal: number;
+  earlyLeaveDays: number; // HD/E
+  hdLateDays: number;     // HD/L
+  missedPunchDays: number;
   overtimeMinutes: number;
   overtimeFormatted: string;
   attendancePct: number;
@@ -51,31 +56,35 @@ export default function ReportsPage() {
     const endDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, "0")}-${String(endDay).padStart(2, "0")}`;
 
-    const [{ data: employees }, { data: attendance }, { data: departments }, { data: holidaysData }] = await Promise.all([
+    // Metrics are computed entirely in the DB (employee_monthly_metrics view).
+    // The raw attendance fetch is only for the daily-late-count chart.
+    const [{ data: employees }, { data: metricsRows }, { data: lateRows }, { data: departments }] = await Promise.all([
       supabase.from("employees").select("*"),
-      supabase.from("attendance").select("*").gte("attendance_date", startDate).lte("attendance_date", endDate),
+      supabase.from("employee_monthly_metrics").select("*").eq("year", year).eq("month", month),
+      supabase.from("attendance").select("attendance_date, late_by").gte("attendance_date", startDate).lte("attendance_date", endDate),
       supabase.from("department").select("*"),
-      supabase.from("holidays").select("*").gte("holiday_date", startDate).lte("holiday_date", endDate),
     ]);
 
     const deptMap = new Map((departments ?? []).map((d: { department_id: number; dept_name: string }) => [d.department_id, d.dept_name] as [number, string]));
-    const allRecords = (attendance ?? []) as AttendanceRecord[];
-    const monthHolidays = (holidaysData ?? []) as Holiday[];
+    const metricsMap = new Map((metricsRows ?? []).map((m: MonthlyMetricsRow) => [m.employee_id, m] as [number, MonthlyMetricsRow]));
     const totalDaysInMonth = endDay;
 
     const reportData: EmployeeReport[] = ((employees ?? []) as Employee[]).map((emp) => {
-      const empRecords = allRecords.filter((r) => r.employee_id === emp.employee_id);
       const empDeptName = (deptMap.get(emp.department_id) ?? "Unknown") as string;
-      const metrics = calculateEmployeeMetrics(emp, empRecords, year, month, empDeptName, monthHolidays);
+      const metrics = metricsFromRow(metricsMap.get(emp.employee_id));
       const attendancePct = totalDaysInMonth > 0 ? Math.round((metrics.totalWorkingDays / totalDaysInMonth) * 100) : 0;
 
       return {
         employee: emp,
         deptName: empDeptName,
+        totalP: metrics.totalP,
         daysPresent: metrics.totalWorkingDays,
         daysLeave: metrics.totalLeaves,
         sundaysWorked: metrics.totalSundaysWorked,
+        halfDayNormal: metrics.halfDayNormal,
         earlyLeaveDays: metrics.earlyLeaveDays,
+        hdLateDays: metrics.hdLateDays,
+        missedPunchDays: metrics.missedPunchDays,
         overtimeMinutes: metrics.overtimeMinutes,
         overtimeFormatted: metrics.overtimeFormatted,
         attendancePct,
@@ -86,7 +95,7 @@ export default function ReportsPage() {
 
     // Daily late data
     const dailyMap: Record<string, number> = {};
-    allRecords.forEach((rec) => {
+    ((lateRows ?? []) as { attendance_date: string; late_by: number | null }[]).forEach((rec) => {
       if (rec.late_by && rec.late_by > 0) {
         const d = rec.attendance_date;
         dailyMap[d] = (dailyMap[d] || 0) + 1;
@@ -121,10 +130,14 @@ export default function ReportsPage() {
       Name: r.employee.employee_name,
       Code: r.employee.employee_code,
       Department: r.deptName,
+      "Total P": r.totalP,
       "Days Present": r.daysPresent,
       "Days Leave": r.daysLeave,
       "Sundays Worked": r.sundaysWorked,
-      "Early Left Days": r.earlyLeaveDays,
+      "Half Days": r.halfDayNormal,
+      "HD/E": r.earlyLeaveDays,
+      "HD/L": r.hdLateDays,
+      "Missed Punch": r.missedPunchDays,
       "Overtime (HH:MM)": r.overtimeFormatted,
       "Attendance %": r.attendancePct,
     }));
@@ -143,10 +156,14 @@ export default function ReportsPage() {
         Department: dept.deptName,
         Employee: "— DEPARTMENT TOTAL —",
         Code: "",
+        "Total P": dept.totalP,
         "Days Present": dept.totalPresent,
         "Days Leave": dept.totalLeave,
         "Sundays Worked": dept.totalSundaysWorked,
-        "Early Left Days": dept.totalEarlyLeave,
+        "Half Days": dept.totalHalfDay,
+        "HD/E": dept.totalEarlyLeave,
+        "HD/L": dept.totalHdLate,
+        "Missed Punch": dept.totalMissedPunch,
         "Overtime (HH:MM)": dept.totalOvertimeFormatted,
         "Attendance %": `${dept.avgAttendance}% avg`,
       });
@@ -156,11 +173,14 @@ export default function ReportsPage() {
           Department: dept.deptName,
           Employee: r.employee.employee_name,
           Code: r.employee.employee_code,
+          "Total P": r.totalP,
           "Days Present": r.daysPresent,
           "Days Leave": r.daysLeave,
           "Sundays Worked": r.sundaysWorked,
-
-          "Early Left Days": r.earlyLeaveDays,
+          "Half Days": r.halfDayNormal,
+          "HD/E": r.earlyLeaveDays,
+          "HD/L": r.hdLateDays,
+          "Missed Punch": r.missedPunchDays,
           "Overtime (HH:MM)": r.overtimeFormatted,
           "Attendance %": `${r.attendancePct}%`,
         });
@@ -216,19 +236,27 @@ export default function ReportsPage() {
       deptGroupMap[r.deptName].push(r);
     });
     return Object.entries(deptGroupMap).map(([deptName, emps]) => {
+      const totalP = emps.reduce((s, r) => s + r.totalP, 0);
       const totalPresent = emps.reduce((s, r) => s + r.daysPresent, 0);
       const totalLeave = emps.reduce((s, r) => s + r.daysLeave, 0);
       const totalSundaysWorked = emps.reduce((s, r) => s + r.sundaysWorked, 0);
+      const totalHalfDay = emps.reduce((s, r) => s + r.halfDayNormal, 0);
       const totalEarlyLeave = emps.reduce((s, r) => s + r.earlyLeaveDays, 0);
+      const totalHdLate = emps.reduce((s, r) => s + r.hdLateDays, 0);
+      const totalMissedPunch = emps.reduce((s, r) => s + r.missedPunchDays, 0);
       const totalOT = emps.reduce((s, r) => s + r.overtimeMinutes, 0);
       const avgAtt = emps.length > 0 ? Math.round(emps.reduce((s, r) => s + r.attendancePct, 0) / emps.length) : 0;
       return {
         deptName,
         employeeCount: emps.length,
+        totalP,
         totalPresent,
         totalLeave,
         totalSundaysWorked,
+        totalHalfDay,
         totalEarlyLeave,
+        totalHdLate,
+        totalMissedPunch,
         totalOvertimeMinutes: totalOT,
         totalOvertimeFormatted: formatMinutes(totalOT),
         avgAttendance: avgAtt,
@@ -326,10 +354,14 @@ export default function ReportsPage() {
                     <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
                       <th className="px-4 py-3 font-medium">Employee</th>
                       <th className="px-4 py-3 font-medium">Department</th>
-                      <th className="px-4 py-3 font-medium">Present</th>
+                      <th className="px-4 py-3 font-medium">Total P</th>
+                      <th className="px-4 py-3 font-medium">Days Present</th>
                       <th className="px-4 py-3 font-medium">Leave</th>
                       <th className="px-4 py-3 font-medium">Sun Worked</th>
-                      <th className="px-4 py-3 font-medium">Early Left</th>
+                      <th className="px-4 py-3 font-medium">Half Day</th>
+                      <th className="px-4 py-3 font-medium">HD/E</th>
+                      <th className="px-4 py-3 font-medium">HD/L</th>
+                      <th className="px-4 py-3 font-medium">MP</th>
                       <th className="px-4 py-3 font-medium">Overtime</th>
                       <th className="px-4 py-3 font-medium">Attendance %</th>
                     </tr>
@@ -339,11 +371,17 @@ export default function ReportsPage() {
                       <tr key={r.employee.employee_id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
                         <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
+                        <td className="px-4 py-3 text-emerald-700 font-semibold">{r.totalP}</td>
                         <td className="px-4 py-3 text-green-700 font-medium">{r.daysPresent}</td>
                         <td className="px-4 py-3 text-red-600">{r.daysLeave}</td>
                         <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
+                        <td className="px-4 py-3 text-orange-600">{r.halfDayNormal || "0"}</td>
                         <td className="px-4 py-3">
                           {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
+                        </td>
+                        <td className="px-4 py-3 text-amber-600">{r.hdLateDays || "0"}</td>
+                        <td className="px-4 py-3">
+                          {r.missedPunchDays > 0 ? <span className="rounded bg-slate-700 px-1.5 py-0.5 text-xs font-bold text-white">{r.missedPunchDays}</span> : "0"}
                         </td>
                         <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
                         <td className="px-4 py-3">
@@ -454,10 +492,14 @@ export default function ReportsPage() {
                       <thead>
                         <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
                           <th className="px-4 py-3 font-medium">Employee</th>
-                          <th className="px-4 py-3 font-medium">Present</th>
+                          <th className="px-4 py-3 font-medium">Total P</th>
+                          <th className="px-4 py-3 font-medium">Days Present</th>
                           <th className="px-4 py-3 font-medium">Leave</th>
                           <th className="px-4 py-3 font-medium">Sun Worked</th>
-                          <th className="px-4 py-3 font-medium">Early Left</th>
+                          <th className="px-4 py-3 font-medium">Half Day</th>
+                          <th className="px-4 py-3 font-medium">HD/E</th>
+                          <th className="px-4 py-3 font-medium">HD/L</th>
+                          <th className="px-4 py-3 font-medium">MP</th>
                           <th className="px-4 py-3 font-medium">Overtime</th>
                           <th className="px-4 py-3 font-medium">Attendance %</th>
                         </tr>
@@ -466,11 +508,17 @@ export default function ReportsPage() {
                         {dept.employees.map((r) => (
                           <tr key={r.employee.employee_id} className="border-b border-slate-100 hover:bg-slate-50">
                             <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
+                            <td className="px-4 py-3 text-emerald-700 font-semibold">{r.totalP}</td>
                             <td className="px-4 py-3 text-green-700 font-medium">{r.daysPresent}</td>
                             <td className="px-4 py-3 text-red-600">{r.daysLeave}</td>
                             <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
+                            <td className="px-4 py-3 text-orange-600">{r.halfDayNormal || "0"}</td>
                             <td className="px-4 py-3">
                               {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
+                            </td>
+                            <td className="px-4 py-3 text-amber-600">{r.hdLateDays || "0"}</td>
+                            <td className="px-4 py-3">
+                              {r.missedPunchDays > 0 ? <span className="rounded bg-slate-700 px-1.5 py-0.5 text-xs font-bold text-white">{r.missedPunchDays}</span> : "0"}
                             </td>
                             <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
                             <td className="px-4 py-3">

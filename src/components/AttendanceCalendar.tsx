@@ -28,19 +28,21 @@ function formatClockBadge(minutes: number | null | undefined): { num: string; un
   return { num: `${h}:${String(m).padStart(2, "0")}`, unit: "h : m" };
 }
 
-/** Diagonal gradient style for half-day cells. */
+/** Horizontal split style for half-day cells. */
 function getGradientStyle(info: DayInfo): React.CSSProperties {
-  if (info.status === "half-day-late")  return { background: "linear-gradient(135deg, #fde68a 50%, #bbf7d0 50%)" };
-  if (info.status === "half-day-early") return { background: "linear-gradient(135deg, #bbf7d0 50%, #fde68a 50%)" };
+  // HD/L: amber top (missed morning) / green bottom (worked afternoon)
+  if (info.status === "half-day-late")  return { background: "linear-gradient(to bottom, #fde68a 50%, #bbf7d0 50%)" };
+  // HD/E: green top (worked morning) / amber bottom (missed afternoon)
+  if (info.status === "half-day-early") return { background: "linear-gradient(to bottom, #bbf7d0 50%, #fde68a 50%)" };
   if (info.status === "half-day") {
     const raw = info.record?.in_time ?? "";
     const timeStr = raw.includes("T") ? raw.split("T")[1] : raw;
     const h = parseInt(timeStr?.split(":")[0] ?? "0", 10);
-    // in_time before 1pm → worked first half → green top-left (HD/E style)
-    // in_time at/after 1pm or no in_time → worked second half → amber top-left (HD/L style)
+    // in_time before 1pm → worked first half → green top / grey bottom
+    // in_time at/after 1pm or no in_time → worked second half → grey top / green bottom
     return !timeStr || h >= 13
-      ? { background: "linear-gradient(135deg, #fde68a 50%, #bbf7d0 50%)" }
-      : { background: "linear-gradient(135deg, #bbf7d0 50%, #fde68a 50%)" };
+      ? { background: "linear-gradient(to bottom, #f8fafc 50%, #bbf7d0 50%)" }
+      : { background: "linear-gradient(to bottom, #bbf7d0 50%, #f8fafc 50%)" };
   }
   return {};
 }
@@ -95,14 +97,19 @@ export default function AttendanceCalendar({
       const isPresent = rec ? (rec.present ?? 0) > 0 && !rec.is_on_leave : false;
       const isOnLeave = rec?.is_on_leave === true;
 
-      const isHalfDay = isPresent && (
-        rec?.present === 0.5 ||
-        (rec?.duration !== null && (rec?.duration ?? 0) > 0 && (rec?.duration ?? 0) < 240)
-      );
+      // Half-day purely from DB status_code (includes biometric ½P variants)
+      const statusCode = rec?.status_code?.trim() ?? "";
+      const isHalfDay  = ["HD", "HD/L", "HD/E", "½P"].includes(statusCode);
+
+      // WOP = "Weekly Off Present": came in on an off day; whole shift is OT.
+      const isWop = statusCode === "WOP";
+
+      // MP = "Missed Punch": only one swipe recorded — incomplete day.
+      const isMissedPunch = statusCode === "MP";
 
       // Only flag late/OT/early on full days
-      const isLate      = isPresent && !isHalfDay && (rec?.late_by ?? 0) > 0;
-      const isOvertime  = isPresent && !isHalfDay && (rec?.overtime ?? 0) > 0;
+      const isLate       = isPresent && !isHalfDay && (rec?.late_by ?? 0) > 0;
+      const isOvertime   = !isHalfDay && (rec?.overtime ?? 0) > 0 && (isPresent || isWop);
       const isEarlyLeave = isPresent && !isHalfDay && (rec?.early_by ?? 0) > 0;
 
       let status: DayStatus;
@@ -112,19 +119,16 @@ export default function AttendanceCalendar({
         status = "holiday";
       } else if (holiday && isPresent) {
         status = "holiday-worked";
-      } else if (isSunday && isPresent) {
-        status = "sunday-worked";
-      } else if (isSunday && !isPresent) {
-        status = "sunday-off";
       } else if (isOnLeave) {
         status = "leave";
+      } else if (isMissedPunch) {
+        status = "missed-punch";
       } else if (isHalfDay) {
-        const code = rec?.status_code ?? rec?.status ?? "";
-        if (code === "HD/L")      status = "half-day-late";
-        else if (code === "HD/E") status = "half-day-early";
-        else                      status = "half-day";
+        if (statusCode === "HD/L")                    status = "half-day-late";
+        else if (statusCode === "HD/E")               status = "half-day-early";
+        else                                          status = "half-day";
       } else if (isLate && isOvertime) {
-        status = "late-and-overtime";
+        status = "overtime";
       } else if (isLate) {
         status = "late";
       } else if (isOvertime) {
@@ -159,8 +163,7 @@ export default function AttendanceCalendar({
       case "late":
       case "late-and-overtime": return "bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200";
       case "overtime":          return "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200";
-      case "sunday-worked":     return "bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200";
-      case "sunday-off":        return "bg-slate-100 text-slate-500 border-slate-200";
+      case "missed-punch":      return "bg-slate-700 text-white border-slate-800 hover:bg-slate-600";
       case "holiday":           return "bg-pink-100 text-pink-800 border-pink-300 hover:bg-pink-200";
       case "holiday-worked":    return "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300 hover:bg-fuchsia-200";
       case "future":            return "bg-slate-50 text-slate-300 border-slate-100";
@@ -179,8 +182,7 @@ export default function AttendanceCalendar({
       case "late":              return "Late";
       case "late-and-overtime": return "L+OT";
       case "overtime":          return "OT";
-      case "sunday-worked":     return "SW";
-      case "sunday-off":        return "SO";
+      case "missed-punch":      return "MP";
       case "holiday":           return "H";
       case "holiday-worked":    return "HW";
       case "future":            return "";
@@ -212,7 +214,7 @@ export default function AttendanceCalendar({
       halfDay:      validDays.filter((d) => ["half-day", "half-day-late", "half-day-early"].includes(d.status)).length,
       overtime:     validDays.filter((d) => d.isOvertime).length,
       earlyLeave:   validDays.filter((d) => d.isEarlyLeave).length,
-      sundayWorked: validDays.filter((d) => d.status === "sunday-worked").length,
+      missedPunch:  validDays.filter((d) => d.status === "missed-punch").length,
       holidays:     validDays.filter((d) => ["holiday", "holiday-worked"].includes(d.status)).length,
     };
   }, [dayInfos]);
@@ -241,7 +243,7 @@ export default function AttendanceCalendar({
         <span className="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">{stats.late} Late</span>
         <span className="rounded-full bg-blue-100 px-2.5 py-1 font-medium text-blue-700">{stats.overtime} OT</span>
         <span className="rounded-full bg-teal-100 px-2.5 py-1 font-medium text-teal-700">{stats.earlyLeave} Early Left</span>
-        <span className="rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-700">{stats.sundayWorked} Sun Worked</span>
+        <span className="rounded-full bg-slate-700 px-2.5 py-1 font-medium text-white">{stats.missedPunch} Missed Punch</span>
         <span className="rounded-full bg-pink-100 px-2.5 py-1 font-medium text-pink-700">{stats.holidays} Holidays</span>
       </div>
 
@@ -265,10 +267,9 @@ export default function AttendanceCalendar({
 
             // Clock badge: HD/L shows late_by, HD/E shows early_by, OT shows overtime
             const badge =
-              info.status === "half-day-late"     ? formatClockBadge(info.record?.late_by) :
-              info.status === "half-day-early"    ? formatClockBadge(info.record?.early_by) :
-              info.status === "overtime"          ? formatClockBadge(info.record?.overtime) :
-              info.status === "late-and-overtime" ? formatClockBadge(info.record?.overtime) :
+              info.status === "half-day-late"  ? formatClockBadge(info.record?.late_by) :
+              info.status === "half-day-early" ? formatClockBadge(info.record?.early_by) :
+              info.status === "overtime"       ? formatClockBadge(info.record?.overtime) :
               null;
 
             return (
@@ -324,15 +325,17 @@ export default function AttendanceCalendar({
         {[
           { color: "bg-emerald-200", label: "Present" },
           { color: "bg-rose-200", label: "Leave" },
-          { style: { background: "linear-gradient(135deg, #bbf7d0 50%, #fde68a 50%)" }, label: "HD 1st half / HD/E" },
-          { style: { background: "linear-gradient(135deg, #fde68a 50%, #bbf7d0 50%)" }, label: "HD 2nd half / HD/L" },
+          { style: { background: "linear-gradient(to bottom, #bbf7d0 50%, #f8fafc 50%)" }, label: "HD (1st half)" },
+          { style: { background: "linear-gradient(to bottom, #f8fafc 50%, #bbf7d0 50%)" }, label: "HD (2nd half)" },
+          { style: { background: "linear-gradient(to bottom, #fde68a 50%, #bbf7d0 50%)" }, label: "HD/L (came late)" },
+          { style: { background: "linear-gradient(to bottom, #bbf7d0 50%, #fde68a 50%)" }, label: "HD/E (left early)" },
           { color: "bg-amber-200", label: "Late" },
           { color: "bg-blue-200", label: "Overtime" },
+          { color: "bg-slate-700", label: "Missed Punch" },
           { color: "bg-teal-200", label: "Early Left" },
-          { color: "bg-purple-200", label: "Sunday Worked" },
           { color: "bg-pink-200", label: "Holiday" },
           { color: "bg-fuchsia-200", label: "Holiday Worked" },
-          { color: "bg-slate-200", label: "Sunday Off / No Record" },
+          { color: "bg-slate-200", label: "No Record" },
         ].map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
             <span

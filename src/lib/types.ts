@@ -59,10 +59,14 @@ export interface EditLog {
 }
 
 export interface EmployeeMetrics {
-  totalWorkingDays: number;
+  totalP: number;            // SUM(present): payroll present-equivalent (P=1, half-day=0.5)
+  totalWorkingDays: number;  // days physically came to work (each a whole day)
   totalSundaysWorked: number;
   totalLeaves: number;
-  earlyLeaveDays: number;
+  earlyLeaveDays: number;    // HD/E count
+  hdLateDays: number;        // HD/L count
+  halfDayNormal: number;     // normal half-days (½P / HD)
+  missedPunchDays: number;   // MP count
   overtimeMinutes: number;
   overtimeFormatted: string;
 }
@@ -92,8 +96,7 @@ export type DayStatus =
   | 'late'
   | 'late-and-overtime'
   | 'overtime'
-  | 'sunday-worked'
-  | 'sunday-off'
+  | 'missed-punch'
   | 'holiday'
   | 'holiday-worked'
   | 'weekend'

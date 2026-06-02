@@ -47,3 +47,5 @@ next-env.d.ts
 
 # attendance source dumps (polled into Supabase)
 data_in/
+*.mdb
+*.accdb
