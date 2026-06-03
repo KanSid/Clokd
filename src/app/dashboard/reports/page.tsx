@@ -566,7 +566,7 @@ export default function ReportsPage() {
             </div>
           )}
 
-          {/* Late Trends */}
+          {/* Late Trends  */}
           {activeTab === "late" && (
             <div className="space-y-6">
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
