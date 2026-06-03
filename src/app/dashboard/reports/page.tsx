@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import type { Employee } from "@/lib/types";
 import {
@@ -27,21 +28,27 @@ type TabKey = "summary" | "department" | "late" | "overtime" | "performance";
 
 interface EmployeeReport {
   employee: Employee;
+  empId: string;
   deptName: string;
   totalP: number;
   daysPresent: number;
   daysLeave: number;
   sundaysWorked: number;
   halfDayNormal: number;
-  earlyLeaveDays: number; // HD/E
+  earlyLeaveDays: number; // HD/E (deprecated)
   hdLateDays: number;     // HD/L
   missedPunchDays: number;
+  daysOff: number;        // full-day leave + 0.5*half-day + all Sundays in month
+  adjLeave: number;       // daysOff + 0.5*HD/L
+  lotMinutes: number;     // loss of time (Σ early_by on Present days)
   overtimeMinutes: number;
   overtimeFormatted: string;
+  adjOtMinutes: number;   // overtime - LOT
   attendancePct: number;
 }
 
 export default function ReportsPage() {
+  const router = useRouter();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -69,13 +76,27 @@ export default function ReportsPage() {
     const metricsMap = new Map((metricsRows ?? []).map((m: MonthlyMetricsRow) => [m.employee_id, m] as [number, MonthlyMetricsRow]));
     const totalDaysInMonth = endDay;
 
+    // All Sundays in the month (calendar) — part of every employee's "days off".
+    let sundaysInMonth = 0;
+    for (let d = 1; d <= endDay; d++) {
+      if (new Date(year, month - 1, d).getDay() === 0) sundaysInMonth++;
+    }
+
     const reportData: EmployeeReport[] = ((employees ?? []) as Employee[]).map((emp) => {
       const empDeptName = (deptMap.get(emp.department_id) ?? "Unknown") as string;
       const metrics = metricsFromRow(metricsMap.get(emp.employee_id));
       const attendancePct = totalDaysInMonth > 0 ? Math.round((metrics.totalWorkingDays / totalDaysInMonth) * 100) : 0;
 
+      // Days off: full-day leave + half-day leave (0.5) + all Sundays in the month
+      const daysOff = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundaysInMonth;
+      // Adjusted leave: days off + HD/L as 0.5 each + MP as full day each
+      const adjLeave = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchDays;
+      // Adjusted overtime: raw overtime minus loss of time
+      const adjOtMinutes = metrics.overtimeMinutes - metrics.lotMinutes;
+
       return {
         employee: emp,
+        empId: emp.emp_id ?? emp.employee_code ?? "",
         deptName: empDeptName,
         totalP: metrics.totalP,
         daysPresent: metrics.totalWorkingDays,
@@ -85,11 +106,18 @@ export default function ReportsPage() {
         earlyLeaveDays: metrics.earlyLeaveDays,
         hdLateDays: metrics.hdLateDays,
         missedPunchDays: metrics.missedPunchDays,
+        daysOff,
+        adjLeave,
+        lotMinutes: metrics.lotMinutes,
         overtimeMinutes: metrics.overtimeMinutes,
         overtimeFormatted: metrics.overtimeFormatted,
+        adjOtMinutes,
         attendancePct,
       };
     });
+
+    // --- SORT BY EMP ID (Natural Alphanumeric Order) ---
+    reportData.sort((a, b) => a.empId.localeCompare(b.empId, undefined, { numeric: true, sensitivity: 'base' }));
 
     setReports(reportData);
 
@@ -126,20 +154,17 @@ export default function ReportsPage() {
   const monthName = new Date(year, month - 1).toLocaleString("default", { month: "long" });
 
   const handleExport = () => {
-    const data = reports.map((r) => ({
+    const data = visibleReports.map((r) => ({
+      "Emp ID": r.empId,
       Name: r.employee.employee_name,
-      Code: r.employee.employee_code,
       Department: r.deptName,
-      "Total P": r.totalP,
-      "Days Present": r.daysPresent,
-      "Days Leave": r.daysLeave,
-      "Sundays Worked": r.sundaysWorked,
-      "Half Days": r.halfDayNormal,
-      "HD/E": r.earlyLeaveDays,
+      MP: r.missedPunchDays,
+      "Days Off": Math.round(r.daysOff * 10) / 10,
       "HD/L": r.hdLateDays,
-      "Missed Punch": r.missedPunchDays,
+      "Adj Leave": Math.round(r.adjLeave * 10) / 10,
       "Overtime (HH:MM)": r.overtimeFormatted,
-      "Attendance %": r.attendancePct,
+      "LOT (HH:MM)": formatMinutes(r.lotMinutes),
+      "Adj OT (HH:MM)": formatMinutes(r.adjOtMinutes),
     }));
     exportToCSV(data, `attendance-report-${year}-${String(month).padStart(2, "0")}.csv`);
   };
@@ -154,35 +179,29 @@ export default function ReportsPage() {
       // Department summary row
       rows.push({
         Department: dept.deptName,
+        "Emp ID": "",
         Employee: "— DEPARTMENT TOTAL —",
-        Code: "",
-        "Total P": dept.totalP,
-        "Days Present": dept.totalPresent,
-        "Days Leave": dept.totalLeave,
-        "Sundays Worked": dept.totalSundaysWorked,
-        "Half Days": dept.totalHalfDay,
-        "HD/E": dept.totalEarlyLeave,
+        MP: dept.totalMissedPunch,
+        "Days Off": Math.round(dept.totalDaysOff * 10) / 10,
         "HD/L": dept.totalHdLate,
-        "Missed Punch": dept.totalMissedPunch,
+        "Adj Leave": Math.round(dept.totalAdjLeave * 10) / 10,
         "Overtime (HH:MM)": dept.totalOvertimeFormatted,
-        "Attendance %": `${dept.avgAttendance}% avg`,
+        "LOT (HH:MM)": formatMinutes(dept.totalLot),
+        "Adj OT (HH:MM)": formatMinutes(dept.totalAdjOt),
       });
       // Employee rows
       for (const r of dept.employees) {
         rows.push({
           Department: dept.deptName,
+          "Emp ID": r.empId,
           Employee: r.employee.employee_name,
-          Code: r.employee.employee_code,
-          "Total P": r.totalP,
-          "Days Present": r.daysPresent,
-          "Days Leave": r.daysLeave,
-          "Sundays Worked": r.sundaysWorked,
-          "Half Days": r.halfDayNormal,
-          "HD/E": r.earlyLeaveDays,
+          MP: r.missedPunchDays,
+          "Days Off": Math.round(r.daysOff * 10) / 10,
           "HD/L": r.hdLateDays,
-          "Missed Punch": r.missedPunchDays,
+          "Adj Leave": Math.round(r.adjLeave * 10) / 10,
           "Overtime (HH:MM)": r.overtimeFormatted,
-          "Attendance %": `${r.attendancePct}%`,
+          "LOT (HH:MM)": formatMinutes(r.lotMinutes),
+          "Adj OT (HH:MM)": formatMinutes(r.adjOtMinutes),
         });
       }
     }
@@ -192,8 +211,23 @@ export default function ReportsPage() {
     exportToCSV(rows, filename);
   };
 
+  // Only employees with an emp_id, sorted by it — used for all table/chart rendering.
+  // Exclude: deleted employees (del_ prefix in name or id), employees with no
+  // activity this month (nothing to show), and employees with unknown department.
+  const visibleReports = [...reports]
+    .filter((r) => {
+      if (!r.empId) return false;
+      if (r.empId.startsWith("del_")) return false;
+      if (r.employee.employee_name?.startsWith("del_")) return false;
+      if (r.deptName === "Unknown") return false;
+      // Only show employees who completed at least one working day or earned OT.
+      // Pure-absence / all-leave months and MP-only months are not useful in the report.
+      return r.daysPresent > 0 || r.overtimeMinutes > 0;
+    })
+    .sort((a, b) => a.empId.localeCompare(b.empId, undefined, { numeric: true }));
+
   // Chart data
-  const topOvertimeEmployees = [...reports]
+  const topOvertimeEmployees = [...visibleReports]
     .filter((r) => r.overtimeMinutes > 0)
     .sort((a, b) => b.overtimeMinutes - a.overtimeMinutes)
     .slice(0, 10)
@@ -204,7 +238,7 @@ export default function ReportsPage() {
 
   // Department overtime
   const deptOvertimeMap: Record<string, number> = {};
-  reports.forEach((r) => {
+  visibleReports.forEach((r) => {
     deptOvertimeMap[r.deptName] = (deptOvertimeMap[r.deptName] || 0) + r.overtimeMinutes;
   });
   const deptOvertimeData = Object.entries(deptOvertimeMap).map(([dept, mins]) => ({
@@ -213,7 +247,7 @@ export default function ReportsPage() {
   }));
 
   // Performance scores
-  const performanceData = reports.map((r) => {
+  const performanceData = visibleReports.map((r) => {
     const attScore = r.attendancePct;
     const otScore = Math.min(r.overtimeMinutes / 600, 1) * 100;
     const score = Math.round(attScore * 0.6 + otScore * 0.4);
@@ -231,7 +265,7 @@ export default function ReportsPage() {
   // Department-wise aggregated data
   const departmentReports = (() => {
     const deptGroupMap: Record<string, EmployeeReport[]> = {};
-    reports.forEach((r) => {
+    visibleReports.forEach((r) => {
       if (!deptGroupMap[r.deptName]) deptGroupMap[r.deptName] = [];
       deptGroupMap[r.deptName].push(r);
     });
@@ -244,7 +278,11 @@ export default function ReportsPage() {
       const totalEarlyLeave = emps.reduce((s, r) => s + r.earlyLeaveDays, 0);
       const totalHdLate = emps.reduce((s, r) => s + r.hdLateDays, 0);
       const totalMissedPunch = emps.reduce((s, r) => s + r.missedPunchDays, 0);
+      const totalDaysOff = emps.reduce((s, r) => s + r.daysOff, 0);
+      const totalAdjLeave = emps.reduce((s, r) => s + r.adjLeave, 0);
+      const totalLot = emps.reduce((s, r) => s + r.lotMinutes, 0);
       const totalOT = emps.reduce((s, r) => s + r.overtimeMinutes, 0);
+      const totalAdjOt = emps.reduce((s, r) => s + r.adjOtMinutes, 0);
       const avgAtt = emps.length > 0 ? Math.round(emps.reduce((s, r) => s + r.attendancePct, 0) / emps.length) : 0;
       return {
         deptName,
@@ -257,10 +295,14 @@ export default function ReportsPage() {
         totalEarlyLeave,
         totalHdLate,
         totalMissedPunch,
+        totalDaysOff,
+        totalAdjLeave,
+        totalLot,
+        totalAdjOt,
         totalOvertimeMinutes: totalOT,
         totalOvertimeFormatted: formatMinutes(totalOT),
         avgAttendance: avgAtt,
-        employees: emps,
+        employees: emps, // Stays implicitly sorted by empId within the department grouping!
       };
     }).sort((a, b) => a.deptName.localeCompare(b.deptName));
   })();
@@ -271,12 +313,12 @@ export default function ReportsPage() {
     "Total Leave": d.totalLeave,
   }));
 
-  // Summary stats
-  const totalPresent = reports.reduce((s, r) => s + r.daysPresent, 0);
-  const totalLeaves = reports.reduce((s, r) => s + r.daysLeave, 0);
-  const totalSundaysWorked = reports.reduce((s, r) => s + r.sundaysWorked, 0);
-  const totalOvertimeHrs = Math.round(reports.reduce((s, r) => s + r.overtimeMinutes, 0) / 60 * 10) / 10;
-  const avgAttendance = reports.length > 0 ? Math.round(reports.reduce((s, r) => s + r.attendancePct, 0) / reports.length) : 0;
+  // Summary stats (derived from visibleReports so numbers stay consistent with the table)
+  const totalPresent = visibleReports.reduce((s, r) => s + r.daysPresent, 0);
+  const totalLeaves = visibleReports.reduce((s, r) => s + r.daysLeave, 0);
+  const totalSundaysWorked = visibleReports.reduce((s, r) => s + r.sundaysWorked, 0);
+  const totalOvertimeHrs = Math.round(visibleReports.reduce((s, r) => s + r.overtimeMinutes, 0) / 60 * 10) / 10;
+  const avgAttendance = visibleReports.length > 0 ? Math.round(visibleReports.reduce((s, r) => s + r.attendancePct, 0) / visibleReports.length) : 0;
 
   return (
     <div className="space-y-6">
@@ -352,47 +394,37 @@ export default function ReportsPage() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
+                      <th className="px-4 py-3 font-medium">Emp ID</th>
                       <th className="px-4 py-3 font-medium">Employee</th>
                       <th className="px-4 py-3 font-medium">Department</th>
-                      <th className="px-4 py-3 font-medium">Total P</th>
-                      <th className="px-4 py-3 font-medium">Days Present</th>
-                      <th className="px-4 py-3 font-medium">Leave</th>
-                      <th className="px-4 py-3 font-medium">Sun Worked</th>
-                      <th className="px-4 py-3 font-medium">Half Day</th>
-                      <th className="px-4 py-3 font-medium">HD/E</th>
-                      <th className="px-4 py-3 font-medium">HD/L</th>
                       <th className="px-4 py-3 font-medium">MP</th>
+                      <th className="px-4 py-3 font-medium">Days Off</th>
+                      <th className="px-4 py-3 font-medium">HD/L</th>
+                      <th className="px-4 py-3 font-medium">Adj Leave</th>
                       <th className="px-4 py-3 font-medium">Overtime</th>
-                      <th className="px-4 py-3 font-medium">Attendance %</th>
+                      <th className="px-4 py-3 font-medium">LOT</th>
+                      <th className="px-4 py-3 font-medium">Adj OT</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {reports.map((r) => (
-                      <tr key={r.employee.employee_id} className="border-b border-slate-100 hover:bg-slate-50">
+                    {visibleReports.map((r) => (
+                      <tr
+                        key={r.employee.employee_id}
+                        className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer"
+                        onClick={() => router.push(`/dashboard/employees/${r.employee.employee_id}?year=${year}&month=${month}`)}
+                      >
+                        <td className="px-4 py-3 font-mono text-xs text-slate-500">{r.empId}</td>
                         <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
                         <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
-                        <td className="px-4 py-3 text-emerald-700 font-semibold">{r.totalP}</td>
-                        <td className="px-4 py-3 text-green-700 font-medium">{r.daysPresent}</td>
-                        <td className="px-4 py-3 text-red-600">{r.daysLeave}</td>
-                        <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
-                        <td className="px-4 py-3 text-orange-600">{r.halfDayNormal || "0"}</td>
-                        <td className="px-4 py-3">
-                          {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
-                        </td>
-                        <td className="px-4 py-3 text-amber-600">{r.hdLateDays || "0"}</td>
                         <td className="px-4 py-3">
                           {r.missedPunchDays > 0 ? <span className="rounded bg-slate-700 px-1.5 py-0.5 text-xs font-bold text-white">{r.missedPunchDays}</span> : "0"}
                         </td>
+                        <td className="px-4 py-3 text-rose-600 font-medium">{Math.round(r.daysOff * 10) / 10}</td>
+                        <td className="px-4 py-3 text-amber-600">{r.hdLateDays || "0"}</td>
+                        <td className="px-4 py-3 text-rose-700 font-semibold">{Math.round(r.adjLeave * 10) / 10}</td>
                         <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                            r.attendancePct >= 80 ? "bg-green-100 text-green-700" :
-                            r.attendancePct >= 60 ? "bg-amber-100 text-amber-700" :
-                            "bg-red-100 text-red-700"
-                          }`}>
-                            {r.attendancePct}%
-                          </span>
-                        </td>
+                        <td className="px-4 py-3 text-teal-600">{formatMinutes(r.lotMinutes)}</td>
+                        <td className={`px-4 py-3 font-semibold ${r.adjOtMinutes < 0 ? "text-red-600" : "text-blue-700"}`}>{formatMinutes(r.adjOtMinutes)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -443,29 +475,33 @@ export default function ReportsPage() {
                       <p className="text-xs text-slate-500">{dept.employeeCount} employees</p>
                     </div>
                     <div className="grid grid-cols-2 gap-3 p-4">
-                      <div className="rounded-lg bg-green-50 p-3">
-                        <p className="text-xs font-medium text-green-600">Avg Attendance</p>
-                        <p className="text-lg font-bold text-green-700">{dept.avgAttendance}%</p>
-                      </div>
-                      <div className="rounded-lg bg-emerald-50 p-3">
-                        <p className="text-xs font-medium text-emerald-600">Total Present</p>
-                        <p className="text-lg font-bold text-emerald-700">{dept.totalPresent}</p>
+                      <div className="rounded-lg bg-rose-50 p-3">
+                        <p className="text-xs font-medium text-rose-600">Days Off</p>
+                        <p className="text-lg font-bold text-rose-700">{Math.round(dept.totalDaysOff * 10) / 10}</p>
                       </div>
                       <div className="rounded-lg bg-rose-50 p-3">
-                        <p className="text-xs font-medium text-rose-600">Total Leave</p>
-                        <p className="text-lg font-bold text-rose-700">{dept.totalLeave}</p>
+                        <p className="text-xs font-medium text-rose-600">Adj Leave</p>
+                        <p className="text-lg font-bold text-rose-700">{Math.round(dept.totalAdjLeave * 10) / 10}</p>
                       </div>
-                      <div className="rounded-lg bg-purple-50 p-3">
-                        <p className="text-xs font-medium text-purple-600">Sun Worked</p>
-                        <p className="text-lg font-bold text-purple-700">{dept.totalSundaysWorked}</p>
+                      <div className="rounded-lg bg-amber-50 p-3">
+                        <p className="text-xs font-medium text-amber-600">HD/L</p>
+                        <p className="text-lg font-bold text-amber-700">{dept.totalHdLate}</p>
                       </div>
-                      <div className="rounded-lg bg-teal-50 p-3">
-                        <p className="text-xs font-medium text-teal-600">Early Left</p>
-                        <p className="text-lg font-bold text-teal-700">{dept.totalEarlyLeave}</p>
+                      <div className="rounded-lg bg-slate-100 p-3">
+                        <p className="text-xs font-medium text-slate-600">Missed Punch</p>
+                        <p className="text-lg font-bold text-slate-800">{dept.totalMissedPunch}</p>
                       </div>
                       <div className="rounded-lg bg-blue-50 p-3">
                         <p className="text-xs font-medium text-blue-600">Overtime</p>
                         <p className="text-lg font-bold text-blue-700">{dept.totalOvertimeFormatted}</p>
+                      </div>
+                      <div className="rounded-lg bg-teal-50 p-3">
+                        <p className="text-xs font-medium text-teal-600">LOT</p>
+                        <p className="text-lg font-bold text-teal-700">{formatMinutes(dept.totalLot)}</p>
+                      </div>
+                      <div className="rounded-lg bg-indigo-50 p-3">
+                        <p className="text-xs font-medium text-indigo-600">Adj OT</p>
+                        <p className={`text-lg font-bold ${dept.totalAdjOt < 0 ? "text-red-600" : "text-indigo-700"}`}>{formatMinutes(dept.totalAdjOt)}</p>
                       </div>
                     </div>
                   </div>
@@ -491,45 +527,35 @@ export default function ReportsPage() {
                     <table className="w-full text-left text-sm">
                       <thead>
                         <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
+                          <th className="px-4 py-3 font-medium">Emp ID</th>
                           <th className="px-4 py-3 font-medium">Employee</th>
-                          <th className="px-4 py-3 font-medium">Total P</th>
-                          <th className="px-4 py-3 font-medium">Days Present</th>
-                          <th className="px-4 py-3 font-medium">Leave</th>
-                          <th className="px-4 py-3 font-medium">Sun Worked</th>
-                          <th className="px-4 py-3 font-medium">Half Day</th>
-                          <th className="px-4 py-3 font-medium">HD/E</th>
-                          <th className="px-4 py-3 font-medium">HD/L</th>
                           <th className="px-4 py-3 font-medium">MP</th>
+                          <th className="px-4 py-3 font-medium">Days Off</th>
+                          <th className="px-4 py-3 font-medium">HD/L</th>
+                          <th className="px-4 py-3 font-medium">Adj Leave</th>
                           <th className="px-4 py-3 font-medium">Overtime</th>
-                          <th className="px-4 py-3 font-medium">Attendance %</th>
+                          <th className="px-4 py-3 font-medium">LOT</th>
+                          <th className="px-4 py-3 font-medium">Adj OT</th>
                         </tr>
                       </thead>
                       <tbody>
                         {dept.employees.map((r) => (
-                          <tr key={r.employee.employee_id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <tr
+                            key={r.employee.employee_id}
+                            className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer"
+                            onClick={() => router.push(`/dashboard/employees/${r.employee.employee_id}?year=${year}&month=${month}`)}
+                          >
+                            <td className="px-4 py-3 font-mono text-xs text-slate-500">{r.empId}</td>
                             <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
-                            <td className="px-4 py-3 text-emerald-700 font-semibold">{r.totalP}</td>
-                            <td className="px-4 py-3 text-green-700 font-medium">{r.daysPresent}</td>
-                            <td className="px-4 py-3 text-red-600">{r.daysLeave}</td>
-                            <td className="px-4 py-3 text-purple-600 font-medium">{r.sundaysWorked}</td>
-                            <td className="px-4 py-3 text-orange-600">{r.halfDayNormal || "0"}</td>
-                            <td className="px-4 py-3">
-                              {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
-                            </td>
-                            <td className="px-4 py-3 text-amber-600">{r.hdLateDays || "0"}</td>
                             <td className="px-4 py-3">
                               {r.missedPunchDays > 0 ? <span className="rounded bg-slate-700 px-1.5 py-0.5 text-xs font-bold text-white">{r.missedPunchDays}</span> : "0"}
                             </td>
+                            <td className="px-4 py-3 text-rose-600 font-medium">{Math.round(r.daysOff * 10) / 10}</td>
+                            <td className="px-4 py-3 text-amber-600">{r.hdLateDays || "0"}</td>
+                            <td className="px-4 py-3 text-rose-700 font-semibold">{Math.round(r.adjLeave * 10) / 10}</td>
                             <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
-                            <td className="px-4 py-3">
-                              <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                                r.attendancePct >= 80 ? "bg-green-100 text-green-700" :
-                                r.attendancePct >= 60 ? "bg-amber-100 text-amber-700" :
-                                "bg-red-100 text-red-700"
-                              }`}>
-                                {r.attendancePct}%
-                              </span>
-                            </td>
+                            <td className="px-4 py-3 text-teal-600">{formatMinutes(r.lotMinutes)}</td>
+                            <td className={`px-4 py-3 font-semibold ${r.adjOtMinutes < 0 ? "text-red-600" : "text-blue-700"}`}>{formatMinutes(r.adjOtMinutes)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -614,14 +640,18 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {reports.filter((r) => r.overtimeMinutes > 0).length === 0 ? (
+                    {visibleReports.filter((r) => r.overtimeMinutes > 0).length === 0 ? (
                       <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">No overtime records</td></tr>
                     ) : (
-                      reports
+                      visibleReports
                         .filter((r) => r.overtimeMinutes > 0)
                         .sort((a, b) => b.overtimeMinutes - a.overtimeMinutes)
                         .map((r) => (
-                          <tr key={r.employee.employee_id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <tr
+                            key={r.employee.employee_id}
+                            className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer"
+                            onClick={() => router.push(`/dashboard/employees/${r.employee.employee_id}?year=${year}&month=${month}`)}
+                          >
                             <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
                             <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
                             <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
@@ -645,22 +675,26 @@ export default function ReportsPage() {
                     <th className="px-4 py-3 font-medium">Employee</th>
                     <th className="px-4 py-3 font-medium">Department</th>
                     <th className="px-4 py-3 font-medium">Attendance %</th>
-                    <th className="px-4 py-3 font-medium">Early Left</th>
+                    <th className="px-4 py-3 font-medium">LOT</th>
                     <th className="px-4 py-3 font-medium">Overtime</th>
+                    <th className="px-4 py-3 font-medium">Adj OT</th>
                     <th className="px-4 py-3 font-medium">Performance Score</th>
                   </tr>
                 </thead>
                 <tbody>
                   {performanceData.map((r, i) => (
-                    <tr key={r.employee.employee_id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <tr
+                      key={r.employee.employee_id}
+                      className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer"
+                      onClick={() => router.push(`/dashboard/employees/${r.employee.employee_id}?year=${year}&month=${month}`)}
+                    >
                       <td className="px-4 py-3 text-slate-400">{i + 1}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
                       <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
                       <td className="px-4 py-3">{r.attendancePct}%</td>
-                      <td className="px-4 py-3">
-                        {r.earlyLeaveDays > 0 ? <span className="text-teal-600 font-medium">{r.earlyLeaveDays}</span> : "0"}
-                      </td>
+                      <td className="px-4 py-3 text-teal-600">{formatMinutes(r.lotMinutes)}</td>
                       <td className="px-4 py-3">{r.overtimeFormatted}</td>
+                      <td className={`px-4 py-3 font-medium ${r.adjOtMinutes < 0 ? "text-red-600" : "text-blue-700"}`}>{formatMinutes(r.adjOtMinutes)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-200">

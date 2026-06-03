@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import type { Employee, AttendanceRecord, Holiday } from "@/lib/types";
 import {
@@ -59,6 +59,7 @@ function labelToCode(label: string): string {
 export default function EmployeeDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const employeeId = Number(params.id);
 
   const [employee, setEmployee] = useState<EmployeeWithDept | null>(null);
@@ -68,8 +69,14 @@ export default function EmployeeDetailPage() {
   const [loading, setLoading] = useState(true);
 
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(() => {
+    const y = Number(searchParams.get("year"));
+    return y > 2000 ? y : now.getFullYear();
+  });
+  const [month, setMonth] = useState(() => {
+    const m = Number(searchParams.get("month"));
+    return m >= 1 && m <= 12 ? m : now.getMonth() + 1;
+  });
 
   // Edit attendance modal state
   const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
@@ -281,9 +288,10 @@ export default function EmployeeDetailPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-teal-600">
               <LogOut className="h-5 w-5" />
-              <span className="text-xs font-medium">HD/E</span>
+              <span className="text-xs font-medium">LOT</span>
             </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.earlyLeaveDays}</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{formatMinutes(metrics.lotMinutes)}</p>
+            <p className="text-xs text-slate-500">loss of time</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 text-amber-600">
@@ -305,7 +313,7 @@ export default function EmployeeDetailPage() {
               <span className="text-xs font-medium">Overtime</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.overtimeFormatted}</p>
-            <p className="text-xs text-slate-500">{metrics.overtimeMinutes} min total</p>
+            <p className="text-xs text-slate-500">Adj OT: {formatMinutes(metrics.overtimeMinutes - metrics.lotMinutes)}</p>
           </div>
         </div>
       )}

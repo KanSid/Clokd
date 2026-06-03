@@ -33,10 +33,10 @@ export default function DayDetailModal({
   const { date, status, record, holiday, isLate, isOvertime, isEarlyLeave, isHalfDay, isSunday } = dayInfo;
   const rec = record;
 
-  // Store department has different Sunday timings: 11:00 - 18:00
+  // Store department starts at 11:00 on Sundays; out-time stays the usual one.
   const isStoreDept = departmentName?.toLowerCase() === "store";
   const effectiveInTime = isSunday && isStoreDept ? "11:00:00" : employeeInTime;
-  const effectiveOutTime = isSunday && isStoreDept ? "18:00:00" : employeeOutTime;
+  const effectiveOutTime = employeeOutTime;
 
   const dateDisplay = date.toLocaleDateString("en-IN", {
     weekday: "long",

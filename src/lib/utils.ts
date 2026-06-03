@@ -98,11 +98,12 @@ export interface MonthlyMetricsRow {
   total_p: number;          // SUM(present): payroll present-equivalent (P=1, half-day=0.5)
   days_present: number;     // days physically came to work (each a whole day)
   sundays_worked: number;   // Sundays with overtime
-  early_left: number;       // HD/E count (genuine early-leaves)
+  early_left: number;       // HD/E count (deprecated — HD/E removed; always 0)
   hd_late: number;          // HD/L count
   half_day_normal: number;  // normal half-days (½P / HD)
   missed_punch: number;     // MP count
-  days_leave: number;       // leaves + absences combined (excl. Sundays & holidays)
+  days_leave: number;       // full-day leaves + absences (excl. Sundays & holidays)
+  lot_minutes: number;      // loss of time: Σ early_by on Present days
   overtime_minutes: number; // SUM(overtime) excluding leave days
 }
 
@@ -121,6 +122,7 @@ export function metricsFromRow(row?: MonthlyMetricsRow | null): EmployeeMetrics 
     hdLateDays: row?.hd_late ?? 0,
     halfDayNormal: row?.half_day_normal ?? 0,
     missedPunchDays: row?.missed_punch ?? 0,
+    lotMinutes: row?.lot_minutes ?? 0,
     overtimeMinutes: ot,
     overtimeFormatted: formatMinutes(ot),
   };

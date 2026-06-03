@@ -63,10 +63,11 @@ export interface EmployeeMetrics {
   totalWorkingDays: number;  // days physically came to work (each a whole day)
   totalSundaysWorked: number;
   totalLeaves: number;
-  earlyLeaveDays: number;    // HD/E count
+  earlyLeaveDays: number;    // HD/E count (deprecated — HD/E removed)
   hdLateDays: number;        // HD/L count
   halfDayNormal: number;     // normal half-days (½P / HD)
   missedPunchDays: number;   // MP count
+  lotMinutes: number;        // loss of time: Σ early_by on Present days
   overtimeMinutes: number;
   overtimeFormatted: string;
 }
