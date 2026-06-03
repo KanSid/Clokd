@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import type { Employee } from "@/lib/types";
@@ -226,6 +226,18 @@ export default function ReportsPage() {
     })
     .sort((a, b) => a.empId.localeCompare(b.empId, undefined, { numeric: true }));
 
+  // Monthly Summary grouped by department (employees stay emp_id-sorted within each)
+  const groupedVisible = (() => {
+    const map = new Map<string, EmployeeReport[]>();
+    for (const r of visibleReports) {
+      if (!map.has(r.deptName)) map.set(r.deptName, []);
+      map.get(r.deptName)!.push(r);
+    }
+    return [...map.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([deptName, emps]) => ({ deptName, emps }));
+  })();
+
   // Chart data
   const topOvertimeEmployees = [...visibleReports]
     .filter((r) => r.overtimeMinutes > 0)
@@ -396,7 +408,6 @@ export default function ReportsPage() {
                     <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
                       <th className="px-4 py-3 font-medium">Emp ID</th>
                       <th className="px-4 py-3 font-medium">Employee</th>
-                      <th className="px-4 py-3 font-medium">Department</th>
                       <th className="px-4 py-3 font-medium">MP</th>
                       <th className="px-4 py-3 font-medium">Days Off</th>
                       <th className="px-4 py-3 font-medium">HD/L</th>
@@ -407,25 +418,33 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleReports.map((r) => (
-                      <tr
-                        key={r.employee.employee_id}
-                        className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer"
-                        onClick={() => router.push(`/dashboard/employees/${r.employee.employee_id}?year=${year}&month=${month}`)}
-                      >
-                        <td className="px-4 py-3 font-mono text-xs text-slate-500">{r.empId}</td>
-                        <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
-                        <td className="px-4 py-3 text-slate-500">{r.deptName}</td>
-                        <td className="px-4 py-3">
-                          {r.missedPunchDays > 0 ? <span className="rounded bg-slate-700 px-1.5 py-0.5 text-xs font-bold text-white">{r.missedPunchDays}</span> : "0"}
-                        </td>
-                        <td className="px-4 py-3 text-rose-600 font-medium">{Math.round(r.daysOff * 10) / 10}</td>
-                        <td className="px-4 py-3 text-amber-600">{r.hdLateDays || "0"}</td>
-                        <td className="px-4 py-3 text-rose-700 font-semibold">{Math.round(r.adjLeave * 10) / 10}</td>
-                        <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
-                        <td className="px-4 py-3 text-teal-600">{formatMinutes(r.lotMinutes)}</td>
-                        <td className={`px-4 py-3 font-semibold ${r.adjOtMinutes < 0 ? "text-red-600" : "text-blue-700"}`}>{formatMinutes(r.adjOtMinutes)}</td>
-                      </tr>
+                    {groupedVisible.map((group) => (
+                      <Fragment key={group.deptName}>
+                        <tr className="border-b border-slate-200 bg-slate-100">
+                          <td colSpan={9} className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-600">
+                            {group.deptName} · {group.emps.length}
+                          </td>
+                        </tr>
+                        {group.emps.map((r) => (
+                          <tr
+                            key={r.employee.employee_id}
+                            className="border-b border-slate-100 hover:bg-indigo-50 cursor-pointer"
+                            onClick={() => router.push(`/dashboard/employees/${r.employee.employee_id}?year=${year}&month=${month}`)}
+                          >
+                            <td className="px-4 py-3 font-mono text-xs text-slate-500">{r.empId}</td>
+                            <td className="px-4 py-3 font-medium text-slate-900">{r.employee.employee_name}</td>
+                            <td className="px-4 py-3">
+                              {r.missedPunchDays > 0 ? <span className="rounded bg-slate-700 px-1.5 py-0.5 text-xs font-bold text-white">{r.missedPunchDays}</span> : "0"}
+                            </td>
+                            <td className="px-4 py-3 text-rose-600 font-medium">{Math.round(r.daysOff * 10) / 10}</td>
+                            <td className="px-4 py-3 text-amber-600">{r.hdLateDays || "0"}</td>
+                            <td className="px-4 py-3 text-rose-700 font-semibold">{Math.round(r.adjLeave * 10) / 10}</td>
+                            <td className="px-4 py-3 text-blue-600 font-medium">{r.overtimeFormatted}</td>
+                            <td className="px-4 py-3 text-teal-600">{formatMinutes(r.lotMinutes)}</td>
+                            <td className={`px-4 py-3 font-semibold ${r.adjOtMinutes < 0 ? "text-red-600" : "text-blue-700"}`}>{formatMinutes(r.adjOtMinutes)}</td>
+                          </tr>
+                        ))}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
