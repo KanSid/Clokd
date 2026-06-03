@@ -19,7 +19,6 @@ import {
   Clock,
   CalendarDays,
   Timer,
-  Sun,
   Pencil,
   LogOut,
   AlertTriangle,
@@ -143,6 +142,19 @@ export default function EmployeeDetailPage() {
 
   const metrics = metricsFromRow(metricsRow);
 
+  // Derived report-level fields (same formula as reports page)
+  const sundaysInMonth = (() => {
+    const days = new Date(year, month, 0).getDate();
+    let count = 0;
+    for (let d = 1; d <= days; d++) {
+      if (new Date(year, month - 1, d).getDay() === 0) count++;
+    }
+    return count;
+  })();
+  const daysOff   = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundaysInMonth;
+  const adjLeave  = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchDays;
+  const adjOtMins = metrics.overtimeMinutes - metrics.lotMinutes;
+
   const openEditAttendance = (rec: AttendanceRecord) => {
     setEditingRecord(rec);
     setEditForm({
@@ -245,78 +257,67 @@ export default function EmployeeDetailPage() {
         </div>
       </div>
 
-      {/* Metrics Cards */}
-      {metrics && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-emerald-600">
-              <CalendarDays className="h-5 w-5" />
-              <span className="text-xs font-medium">Total P</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.totalP}</p>
-            <p className="text-xs text-slate-500">present-equivalent</p>
+      {/* Metrics Cards — mirrors the report columns exactly */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-slate-700">
+            <AlertTriangle className="h-5 w-5" />
+            <span className="text-xs font-medium">MP</span>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-green-600">
-              <CalendarDays className="h-5 w-5" />
-              <span className="text-xs font-medium">Days Present</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.totalWorkingDays}</p>
-            <p className="text-xs text-slate-500">days came to work</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-purple-600">
-              <Sun className="h-5 w-5" />
-              <span className="text-xs font-medium">Sundays Worked</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.totalSundaysWorked}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-red-600">
-              <CalendarDays className="h-5 w-5" />
-              <span className="text-xs font-medium">Total Leaves</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.totalLeaves}</p>
-          </div>
-<div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-orange-600">
-              <Clock className="h-5 w-5" />
-              <span className="text-xs font-medium">Half Day</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.halfDayNormal}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-teal-600">
-              <LogOut className="h-5 w-5" />
-              <span className="text-xs font-medium">LOT</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{formatMinutes(metrics.lotMinutes)}</p>
-            <p className="text-xs text-slate-500">loss of time</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-amber-600">
-              <Clock className="h-5 w-5" />
-              <span className="text-xs font-medium">HD/L</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.hdLateDays}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-slate-700">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="text-xs font-medium">Missed Punch</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.missedPunchDays}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 text-blue-600">
-              <Timer className="h-5 w-5" />
-              <span className="text-xs font-medium">Overtime</span>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.overtimeFormatted}</p>
-            <p className="text-xs text-slate-500">Adj OT: {formatMinutes(metrics.overtimeMinutes - metrics.lotMinutes)}</p>
-          </div>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.missedPunchDays}</p>
+          <p className="text-xs text-slate-500">missed punch</p>
         </div>
-      )}
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-rose-600">
+            <CalendarDays className="h-5 w-5" />
+            <span className="text-xs font-medium">Days Off</span>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{Math.round(daysOff * 10) / 10}</p>
+          <p className="text-xs text-slate-500">leave + ½-days + sundays</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-amber-600">
+            <Clock className="h-5 w-5" />
+            <span className="text-xs font-medium">HD/L</span>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.hdLateDays}</p>
+          <p className="text-xs text-slate-500">half day late</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-rose-700">
+            <CalendarDays className="h-5 w-5" />
+            <span className="text-xs font-medium">Adj Leave</span>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{Math.round(adjLeave * 10) / 10}</p>
+          <p className="text-xs text-slate-500">days off + HD/L + MP</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-blue-600">
+            <Timer className="h-5 w-5" />
+            <span className="text-xs font-medium">Overtime</span>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.overtimeFormatted}</p>
+          <p className="text-xs text-slate-500">gross overtime</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-teal-600">
+            <LogOut className="h-5 w-5" />
+            <span className="text-xs font-medium">LOT</span>
+          </div>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{formatMinutes(metrics.lotMinutes)}</p>
+          <p className="text-xs text-slate-500">loss of time</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-blue-700">
+            <Timer className="h-5 w-5" />
+            <span className="text-xs font-medium">Adj OT</span>
+          </div>
+          <p className={`mt-2 text-2xl font-bold ${adjOtMins < 0 ? "text-red-600" : "text-slate-900"}`}>
+            {formatMinutes(adjOtMins)}
+          </p>
+          <p className="text-xs text-slate-500">overtime − LOT</p>
+        </div>
+      </div>
 
       {/* Calendar */}
       <AttendanceCalendar

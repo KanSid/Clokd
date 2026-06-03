@@ -50,8 +50,10 @@ interface EmployeeReport {
 export default function ReportsPage() {
   const router = useRouter();
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  // Default to previous month — the current month rarely has complete data yet.
+  const defaultDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const [year, setYear] = useState(defaultDate.getFullYear());
+  const [month, setMonth] = useState(defaultDate.getMonth() + 1);
   const [activeTab, setActiveTab] = useState<TabKey>("summary");
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<EmployeeReport[]>([]);
@@ -96,7 +98,7 @@ export default function ReportsPage() {
 
       return {
         employee: emp,
-        empId: emp.emp_id ?? emp.employee_code ?? "",
+        empId: emp.emp_id ?? "",
         deptName: empDeptName,
         totalP: metrics.totalP,
         daysPresent: metrics.totalWorkingDays,
@@ -220,9 +222,7 @@ export default function ReportsPage() {
       if (r.empId.startsWith("del_")) return false;
       if (r.employee.employee_name?.startsWith("del_")) return false;
       if (r.deptName === "Unknown") return false;
-      // Only show employees who completed at least one working day or earned OT.
-      // Pure-absence / all-leave months and MP-only months are not useful in the report.
-      return r.daysPresent > 0 || r.overtimeMinutes > 0;
+      return true;
     })
     .sort((a, b) => a.empId.localeCompare(b.empId, undefined, { numeric: true }));
 
