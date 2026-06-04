@@ -45,183 +45,215 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L1",
       "id": "poll_attendance",
-      "community": 1
+      "community": 0
     },
     {
       "label": "load_env()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L37",
+      "source_location": "L35",
       "id": "poll_attendance_load_env",
-      "community": 1
+      "community": 0
     },
     {
       "label": "latest_mdb()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L54",
+      "source_location": "L52",
       "id": "poll_attendance_latest_mdb",
-      "community": 1
+      "community": 0
     },
     {
       "label": "connect_mdb()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L64",
+      "source_location": "L62",
       "id": "poll_attendance_connect_mdb",
-      "community": 1
+      "community": 0
     },
     {
       "label": "to_jsonable()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L70",
+      "source_location": "L68",
       "id": "poll_attendance_to_jsonable",
-      "community": 1
+      "community": 0
     },
     {
       "label": "rows_to_dicts()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L84",
+      "source_location": "L82",
       "id": "poll_attendance_rows_to_dicts",
-      "community": 1
+      "community": 0
     },
     {
       "label": "Supabase",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L89",
+      "source_location": "L87",
       "id": "poll_attendance_supabase",
-      "community": 1
+      "community": 0
     },
     {
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L90",
+      "source_location": "L88",
       "id": "poll_attendance_supabase_init",
-      "community": 1
+      "community": 0
     },
     {
       "label": ".upsert()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L98",
+      "source_location": "L96",
       "id": "poll_attendance_supabase_upsert",
-      "community": 1
+      "community": 0
     },
     {
       "label": ".delete_range()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L112",
+      "source_location": "L110",
       "id": "poll_attendance_supabase_delete_range",
-      "community": 1
+      "community": 0
     },
     {
       "label": ".insert()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L119",
+      "source_location": "L117",
       "id": "poll_attendance_supabase_insert",
-      "community": 1
+      "community": 0
     },
     {
       "label": ".get_id_set()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L133",
+      "source_location": "L131",
       "id": "poll_attendance_supabase_get_id_set",
-      "community": 1
+      "community": 0
+    },
+    {
+      "label": ".get_rows()",
+      "file_type": "code",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L139",
+      "id": "poll_attendance_supabase_get_rows",
+      "community": 0
     },
     {
       "label": "sync_departments()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L157",
+      "source_location": "L163",
       "id": "poll_attendance_sync_departments",
-      "community": 1
+      "community": 0
     },
     {
       "label": "sync_employees()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L175",
+      "source_location": "L181",
       "id": "poll_attendance_sync_employees",
-      "community": 1
+      "community": 0
     },
     {
       "label": "_coerce_dt()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L202",
+      "source_location": "L208",
       "id": "poll_attendance_coerce_dt",
-      "community": 1
+      "community": 0
     },
     {
       "label": "_coerce_date()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L212",
+      "source_location": "L218",
       "id": "poll_attendance_coerce_date",
-      "community": 1
+      "community": 0
     },
     {
       "label": "sync_attendance()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L224",
+      "source_location": "L230",
       "id": "poll_attendance_sync_attendance",
-      "community": 1
+      "community": 0
     },
     {
       "label": "sync_holidays()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L291",
+      "source_location": "L297",
       "id": "poll_attendance_sync_holidays",
-      "community": 1
+      "community": 0
+    },
+    {
+      "label": "warn_incomplete_employees()",
+      "file_type": "code",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L314",
+      "id": "poll_attendance_warn_incomplete_employees",
+      "community": 0
     },
     {
       "label": "_validate_date()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L308",
+      "source_location": "L345",
       "id": "poll_attendance_validate_date",
-      "community": 1
+      "community": 0
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L315",
+      "source_location": "L352",
       "id": "poll_attendance_main",
-      "community": 1
+      "community": 0
     },
     {
-      "label": "Poll the eTimeTrackLite .mdb file in data_in/ and sync to Supabase.  Reads:   -",
+      "label": "Poll the latest eTimeTrackLite .mdb file in the repo root and sync to Supabase.",
       "file_type": "rationale",
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L1",
       "id": "poll_attendance_rationale_1",
-      "community": 1
+      "community": 0
     },
     {
       "label": "Return the set of existing values for `column` (paged).",
       "file_type": "rationale",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L134",
-      "id": "poll_attendance_rationale_134",
-      "community": 1
+      "source_location": "L132",
+      "id": "poll_attendance_rationale_132",
+      "community": 0
+    },
+    {
+      "label": "Return rows for `table` with the given select columns + optional filter (paged).",
+      "file_type": "rationale",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L140",
+      "id": "poll_attendance_rationale_140",
+      "community": 0
     },
     {
       "label": "Insert NEW employees only. Existing employees are fully owned by Supabase \u2014",
       "file_type": "rationale",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L176",
-      "id": "poll_attendance_rationale_176",
-      "community": 1
+      "source_location": "L182",
+      "id": "poll_attendance_rationale_182",
+      "community": 0
+    },
+    {
+      "label": "Flag active employees missing an emp_id or shift times. Such employees are     h",
+      "file_type": "rationale",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L315",
+      "id": "poll_attendance_rationale_315",
+      "community": 0
     },
     {
       "label": "Middleware Auth & Role Guard",
@@ -373,7 +405,7 @@
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
       "source_location": "L1",
       "id": "page",
-      "community": 0
+      "community": 1
     },
     {
       "label": "StatCard()",
@@ -381,7 +413,7 @@
       "source_file": "src\\app\\dashboard\\page.tsx",
       "source_location": "L27",
       "id": "page_statcard",
-      "community": 0
+      "community": 1
     },
     {
       "label": "SkeletonCard()",
@@ -389,7 +421,7 @@
       "source_file": "src\\app\\dashboard\\page.tsx",
       "source_location": "L41",
       "id": "page_skeletoncard",
-      "community": 0
+      "community": 1
     },
     {
       "label": "SkeletonChart()",
@@ -397,7 +429,7 @@
       "source_file": "src\\app\\dashboard\\page.tsx",
       "source_location": "L55",
       "id": "page_skeletonchart",
-      "community": 0
+      "community": 1
     },
     {
       "label": "fetchDashboardData()",
@@ -405,7 +437,7 @@
       "source_file": "src\\app\\dashboard\\page.tsx",
       "source_location": "L90",
       "id": "page_fetchdashboarddata",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Admin Panel Page",
@@ -461,7 +493,7 @@
       "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
       "source_location": "L89",
       "id": "page_nameof",
-      "community": 0
+      "community": 1
     },
     {
       "label": "codeOf()",
@@ -469,7 +501,7 @@
       "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
       "source_location": "L91",
       "id": "page_codeof",
-      "community": 0
+      "community": 1
     },
     {
       "label": "changeDate()",
@@ -477,7 +509,7 @@
       "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
       "source_location": "L112",
       "id": "page_changedate",
-      "community": 0
+      "community": 1
     },
     {
       "label": "openAddModal()",
@@ -485,7 +517,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L414",
       "id": "page_openaddmodal",
-      "community": 0
+      "community": 1
     },
     {
       "label": "openEditModal()",
@@ -493,7 +525,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L420",
       "id": "page_openeditmodal",
-      "community": 0
+      "community": 1
     },
     {
       "label": "handleSave()",
@@ -501,7 +533,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L333",
       "id": "page_handlesave",
-      "community": 0
+      "community": 1
     },
     {
       "label": "handleDelete()",
@@ -509,7 +541,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L382",
       "id": "page_handledelete",
-      "community": 0
+      "community": 1
     },
     {
       "label": "openEdit()",
@@ -517,7 +549,7 @@
       "source_file": "src\\app\\dashboard\\departments\\page.tsx",
       "source_location": "L242",
       "id": "page_openedit",
-      "community": 0
+      "community": 1
     },
     {
       "label": "openAdd()",
@@ -525,7 +557,7 @@
       "source_file": "src\\app\\dashboard\\departments\\page.tsx",
       "source_location": "L251",
       "id": "page_openadd",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Edit Logs Page (Audit Trail)",
@@ -581,7 +613,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L22",
       "id": "page_editmodal",
-      "community": 0
+      "community": 1
     },
     {
       "label": "ConfirmDialog()",
@@ -589,7 +621,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L207",
       "id": "page_confirmdialog",
-      "community": 0
+      "community": 1
     },
     {
       "label": "fetchEmployees()",
@@ -597,7 +629,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L261",
       "id": "page_fetchemployees",
-      "community": 0
+      "community": 1
     },
     {
       "label": "fetchDepartments()",
@@ -605,7 +637,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L275",
       "id": "page_fetchdepartments",
-      "community": 0
+      "community": 1
     },
     {
       "label": "openDeleteConfirm()",
@@ -613,7 +645,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L426",
       "id": "page_opendeleteconfirm",
-      "community": 0
+      "community": 1
     },
     {
       "label": "statusCodeToLabel()",
@@ -621,7 +653,7 @@
       "source_file": "src\\app\\dashboard\\employees\\[id]\\page.tsx",
       "source_location": "L43",
       "id": "page_statuscodetolabel",
-      "community": 0
+      "community": 1
     },
     {
       "label": "isHalfDayLeave()",
@@ -629,7 +661,7 @@
       "source_file": "src\\app\\dashboard\\employees\\[id]\\page.tsx",
       "source_location": "L50",
       "id": "page_ishalfdayleave",
-      "community": 0
+      "community": 1
     },
     {
       "label": "labelToCode()",
@@ -637,7 +669,7 @@
       "source_file": "src\\app\\dashboard\\employees\\[id]\\page.tsx",
       "source_location": "L54",
       "id": "page_labeltocode",
-      "community": 0
+      "community": 1
     },
     {
       "label": "EmployeeDetailPage()",
@@ -645,7 +677,7 @@
       "source_file": "src\\app\\dashboard\\employees\\[id]\\page.tsx",
       "source_location": "L58",
       "id": "page_employeedetailpage",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Holidays Page (CRUD + year overview)",
@@ -699,25 +731,25 @@
       "label": "changeMonth()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
-      "source_location": "L147",
+      "source_location": "L150",
       "id": "page_changemonth",
-      "community": 0
+      "community": 1
     },
     {
       "label": "handleExport()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
-      "source_location": "L158",
+      "source_location": "L161",
       "id": "page_handleexport",
-      "community": 0
+      "community": 1
     },
     {
       "label": "handleExportDeptReport()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
-      "source_location": "L174",
+      "source_location": "L177",
       "id": "page_handleexportdeptreport",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Unauthorized Page",
@@ -955,7 +987,7 @@
       "label": "metricsFromRow()",
       "file_type": "code",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L114",
+      "source_location": "L115",
       "id": "utils_metricsfromrow",
       "community": 3
     },
@@ -963,7 +995,7 @@
       "label": "getMonthDays()",
       "file_type": "code",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L134",
+      "source_location": "L136",
       "id": "utils_getmonthdays",
       "community": 3
     },
@@ -971,7 +1003,7 @@
       "label": "cn()",
       "file_type": "code",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L146",
+      "source_location": "L148",
       "id": "utils_cn",
       "community": 3
     },
@@ -979,7 +1011,7 @@
       "label": "sanitizeCsvCell()",
       "file_type": "code",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L157",
+      "source_location": "L159",
       "id": "utils_sanitizecsvcell",
       "community": 3
     },
@@ -987,7 +1019,7 @@
       "label": "exportToCSV()",
       "file_type": "code",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L167",
+      "source_location": "L169",
       "id": "utils_exporttocsv",
       "community": 3
     },
@@ -1057,7 +1089,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L37",
+      "source_location": "L35",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_load_env",
@@ -1069,7 +1101,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L54",
+      "source_location": "L52",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_latest_mdb",
@@ -1081,7 +1113,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L64",
+      "source_location": "L62",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_connect_mdb",
@@ -1093,7 +1125,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L70",
+      "source_location": "L68",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_to_jsonable",
@@ -1105,7 +1137,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L84",
+      "source_location": "L82",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_rows_to_dicts",
@@ -1117,7 +1149,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L89",
+      "source_location": "L87",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_supabase",
@@ -1129,7 +1161,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L157",
+      "source_location": "L163",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_sync_departments",
@@ -1141,7 +1173,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L175",
+      "source_location": "L181",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_sync_employees",
@@ -1153,7 +1185,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L202",
+      "source_location": "L208",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_coerce_dt",
@@ -1165,7 +1197,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L212",
+      "source_location": "L218",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_coerce_date",
@@ -1177,7 +1209,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L224",
+      "source_location": "L230",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_sync_attendance",
@@ -1189,7 +1221,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L291",
+      "source_location": "L297",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_sync_holidays",
@@ -1201,7 +1233,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L308",
+      "source_location": "L314",
+      "weight": 1.0,
+      "_src": "poll_attendance",
+      "_tgt": "poll_attendance_warn_incomplete_employees",
+      "source": "poll_attendance",
+      "target": "poll_attendance_warn_incomplete_employees",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L345",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_validate_date",
@@ -1213,7 +1257,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L315",
+      "source_location": "L352",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_main",
@@ -1237,7 +1281,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L327",
+      "source_location": "L364",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_load_env",
@@ -1249,7 +1293,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L329",
+      "source_location": "L366",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_latest_mdb",
@@ -1261,7 +1305,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L336",
+      "source_location": "L373",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_connect_mdb",
@@ -1273,7 +1317,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L86",
+      "source_location": "L84",
       "weight": 1.0,
       "_src": "poll_attendance_rows_to_dicts",
       "_tgt": "poll_attendance_to_jsonable",
@@ -1285,7 +1329,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L164",
+      "source_location": "L170",
       "weight": 1.0,
       "_src": "poll_attendance_sync_departments",
       "_tgt": "poll_attendance_rows_to_dicts",
@@ -1297,7 +1341,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L185",
+      "source_location": "L191",
       "weight": 1.0,
       "_src": "poll_attendance_sync_employees",
       "_tgt": "poll_attendance_rows_to_dicts",
@@ -1309,7 +1353,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L248",
+      "source_location": "L254",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_rows_to_dicts",
@@ -1321,7 +1365,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L298",
+      "source_location": "L304",
       "weight": 1.0,
       "_src": "poll_attendance_sync_holidays",
       "_tgt": "poll_attendance_rows_to_dicts",
@@ -1333,7 +1377,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L90",
+      "source_location": "L88",
       "weight": 1.0,
       "_src": "poll_attendance_supabase",
       "_tgt": "poll_attendance_supabase_init",
@@ -1345,7 +1389,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L98",
+      "source_location": "L96",
       "weight": 1.0,
       "_src": "poll_attendance_supabase",
       "_tgt": "poll_attendance_supabase_upsert",
@@ -1357,7 +1401,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L112",
+      "source_location": "L110",
       "weight": 1.0,
       "_src": "poll_attendance_supabase",
       "_tgt": "poll_attendance_supabase_delete_range",
@@ -1369,7 +1413,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L119",
+      "source_location": "L117",
       "weight": 1.0,
       "_src": "poll_attendance_supabase",
       "_tgt": "poll_attendance_supabase_insert",
@@ -1381,7 +1425,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L133",
+      "source_location": "L131",
       "weight": 1.0,
       "_src": "poll_attendance_supabase",
       "_tgt": "poll_attendance_supabase_get_id_set",
@@ -1390,10 +1434,22 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L139",
+      "weight": 1.0,
+      "_src": "poll_attendance_supabase",
+      "_tgt": "poll_attendance_supabase_get_rows",
+      "source": "poll_attendance_supabase",
+      "target": "poll_attendance_supabase_get_rows",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L328",
+      "source_location": "L365",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_supabase",
@@ -1405,7 +1461,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L172",
+      "source_location": "L178",
       "weight": 1.0,
       "_src": "poll_attendance_sync_departments",
       "_tgt": "poll_attendance_supabase_upsert",
@@ -1417,7 +1473,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L305",
+      "source_location": "L311",
       "weight": 1.0,
       "_src": "poll_attendance_sync_holidays",
       "_tgt": "poll_attendance_supabase_upsert",
@@ -1429,7 +1485,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L252",
+      "source_location": "L258",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_supabase_delete_range",
@@ -1441,7 +1497,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L199",
+      "source_location": "L205",
       "weight": 1.0,
       "_src": "poll_attendance_sync_employees",
       "_tgt": "poll_attendance_supabase_insert",
@@ -1453,7 +1509,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L288",
+      "source_location": "L294",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_supabase_insert",
@@ -1465,7 +1521,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L182",
+      "source_location": "L134",
+      "weight": 1.0,
+      "_src": "poll_attendance_supabase_get_id_set",
+      "_tgt": "poll_attendance_supabase_get_rows",
+      "source": "poll_attendance_supabase_get_id_set",
+      "target": "poll_attendance_supabase_get_rows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L188",
       "weight": 1.0,
       "_src": "poll_attendance_sync_employees",
       "_tgt": "poll_attendance_supabase_get_id_set",
@@ -1477,19 +1545,43 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L134",
+      "source_location": "L132",
       "weight": 1.0,
-      "_src": "poll_attendance_rationale_134",
+      "_src": "poll_attendance_rationale_132",
       "_tgt": "poll_attendance_supabase_get_id_set",
       "source": "poll_attendance_supabase_get_id_set",
-      "target": "poll_attendance_rationale_134",
+      "target": "poll_attendance_rationale_132",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L340",
+      "source_location": "L318",
+      "weight": 1.0,
+      "_src": "poll_attendance_warn_incomplete_employees",
+      "_tgt": "poll_attendance_supabase_get_rows",
+      "source": "poll_attendance_supabase_get_rows",
+      "target": "poll_attendance_warn_incomplete_employees",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L140",
+      "weight": 1.0,
+      "_src": "poll_attendance_rationale_140",
+      "_tgt": "poll_attendance_supabase_get_rows",
+      "source": "poll_attendance_supabase_get_rows",
+      "target": "poll_attendance_rationale_140",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L377",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_sync_departments",
@@ -1501,7 +1593,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L342",
+      "source_location": "L379",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_sync_employees",
@@ -1513,19 +1605,19 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L176",
+      "source_location": "L182",
       "weight": 1.0,
-      "_src": "poll_attendance_rationale_176",
+      "_src": "poll_attendance_rationale_182",
       "_tgt": "poll_attendance_sync_employees",
       "source": "poll_attendance_sync_employees",
-      "target": "poll_attendance_rationale_176",
+      "target": "poll_attendance_rationale_182",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L268",
+      "source_location": "L274",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_coerce_dt",
@@ -1537,7 +1629,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L259",
+      "source_location": "L265",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_coerce_date",
@@ -1549,7 +1641,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L299",
+      "source_location": "L305",
       "weight": 1.0,
       "_src": "poll_attendance_sync_holidays",
       "_tgt": "poll_attendance_coerce_date",
@@ -1561,7 +1653,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L344",
+      "source_location": "L381",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_sync_attendance",
@@ -1573,12 +1665,36 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L347",
+      "source_location": "L384",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_sync_holidays",
       "source": "poll_attendance_sync_holidays",
       "target": "poll_attendance_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L389",
+      "weight": 1.0,
+      "_src": "poll_attendance_main",
+      "_tgt": "poll_attendance_warn_incomplete_employees",
+      "source": "poll_attendance_warn_incomplete_employees",
+      "target": "poll_attendance_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\poll_attendance.py",
+      "source_location": "L315",
+      "weight": 1.0,
+      "_src": "poll_attendance_rationale_315",
+      "_tgt": "poll_attendance_warn_incomplete_employees",
+      "source": "poll_attendance_warn_incomplete_employees",
+      "target": "poll_attendance_rationale_315",
       "confidence_score": 1.0
     },
     {
@@ -2065,7 +2181,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
-      "source_location": "L147",
+      "source_location": "L150",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_changemonth",
@@ -2077,7 +2193,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
-      "source_location": "L158",
+      "source_location": "L161",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_handleexport",
@@ -2089,7 +2205,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
-      "source_location": "L174",
+      "source_location": "L177",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_handleexportdeptreport",
@@ -2461,7 +2577,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L114",
+      "source_location": "L115",
       "weight": 1.0,
       "_src": "utils",
       "_tgt": "utils_metricsfromrow",
@@ -2473,7 +2589,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L134",
+      "source_location": "L136",
       "weight": 1.0,
       "_src": "utils",
       "_tgt": "utils_getmonthdays",
@@ -2485,7 +2601,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L146",
+      "source_location": "L148",
       "weight": 1.0,
       "_src": "utils",
       "_tgt": "utils_cn",
@@ -2497,7 +2613,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L157",
+      "source_location": "L159",
       "weight": 1.0,
       "_src": "utils",
       "_tgt": "utils_sanitizecsvcell",
@@ -2509,7 +2625,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L167",
+      "source_location": "L169",
       "weight": 1.0,
       "_src": "utils",
       "_tgt": "utils_exporttocsv",
@@ -2521,7 +2637,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src\\lib\\utils.ts",
-      "source_location": "L127",
+      "source_location": "L129",
       "weight": 1.0,
       "_src": "utils_metricsfromrow",
       "_tgt": "utils_formatminutes",

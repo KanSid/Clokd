@@ -62,6 +62,7 @@ export interface EmployeeMetrics {
   totalP: number;            // SUM(present): payroll present-equivalent (P=1, half-day=0.5)
   totalWorkingDays: number;  // days physically came to work (each a whole day)
   totalSundaysWorked: number;
+  sundaysAbsent: number;     // Sundays not worked (Store "days off" Sunday component)
   totalLeaves: number;
   earlyLeaveDays: number;    // HD/E count (deprecated — HD/E removed)
   hdLateDays: number;        // HD/L count

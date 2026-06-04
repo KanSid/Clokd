@@ -1,4 +1,4 @@
-"""Poll the eTimeTrackLite .mdb file in data_in/ and sync to Supabase.
+"""Poll the latest eTimeTrackLite .mdb file in the repo root and sync to Supabase.
 
 Reads:
   - Departments  -> public.department
@@ -15,11 +15,9 @@ Requires: pyodbc, requests. Driver: "Microsoft Access Driver (*.mdb, *.accdb)".
 from __future__ import annotations
 
 import argparse
-import glob
 import json
-import os
 import sys
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timezone
 from pathlib import Path
 from typing import Any
 
@@ -133,7 +131,17 @@ class Supabase:
     def get_id_set(self, table: str, column: str) -> set[Any]:
         """Return the set of existing values for `column` (paged)."""
         ids: set[Any] = set()
-        url = f"{self.base}/{table}?select={column}"
+        for row in self.get_rows(table, column):
+            if row.get(column) is not None:
+                ids.add(row[column])
+        return ids
+
+    def get_rows(self, table: str, select: str, query: str = "") -> list[dict[str, Any]]:
+        """Return rows for `table` with the given select columns + optional filter (paged)."""
+        out: list[dict[str, Any]] = []
+        url = f"{self.base}/{table}?select={select}"
+        if query:
+            url += f"&{query}"
         offset = 0
         while True:
             h = {
@@ -145,13 +153,11 @@ class Supabase:
             if r.status_code >= 300:
                 sys.exit(f"select {table} failed [{r.status_code}]: {r.text[:500]}")
             chunk = r.json()
-            for row in chunk:
-                if row.get(column) is not None:
-                    ids.add(row[column])
+            out.extend(chunk)
             if len(chunk) < BATCH:
                 break
             offset += BATCH
-        return ids
+        return out
 
 
 def sync_departments(cur: pyodbc.Cursor, sb: Supabase) -> int:
@@ -180,7 +186,7 @@ def sync_employees(cur: pyodbc.Cursor, sb: Supabase) -> int:
         "FROM Employees WHERE RecordStatus IS NULL OR RecordStatus <> 0"
     )
     existing = sb.get_id_set("employees", "employee_id")
-    now_iso = datetime.utcnow().isoformat() + "Z"
+    now_iso = datetime.now(timezone.utc).isoformat()
     rows = []
     for r in rows_to_dicts(cur):
         if r["EmployeeId"] in existing:
@@ -252,7 +258,7 @@ def sync_attendance(
             sb.delete_range("attendance", "attendance_date", start_date, end_date)
         return 0
 
-    polled_at = datetime.utcnow().isoformat() + "Z"
+    polled_at = datetime.now(timezone.utc).isoformat()
     rows = []
     dates = []
     for r in raw:
@@ -305,6 +311,37 @@ def sync_holidays(cur: pyodbc.Cursor, sb: Supabase) -> int:
     return sb.upsert("holidays", rows, on_conflict="holiday_date")
 
 
+def warn_incomplete_employees(sb: Supabase) -> None:
+    """Flag active employees missing an emp_id or shift times. Such employees are
+    hidden from reports (no emp_id) or have no attendance computed (no shift times),
+    so new hires can silently fall out of the system until set up in Supabase."""
+    rows = sb.get_rows("employees", "employee_id,employee_name,emp_id,in_time,out_time,status")
+    problems: list[tuple[Any, str, str]] = []
+    for e in rows:
+        name = e.get("employee_name") or ""
+        if name.startswith("del_"):
+            continue
+        status = (e.get("status") or "").strip().lower()
+        # Only flag active staff (skip resigned/left/inactive); empty status counts as active
+        if status and status not in ("working", "active"):
+            continue
+        missing = []
+        if not e.get("emp_id"):
+            missing.append("emp_id")
+        if not e.get("in_time") or not e.get("out_time"):
+            missing.append("shift times")
+        if missing:
+            problems.append((e.get("employee_id"), name, ", ".join(missing)))
+
+    if problems:
+        print(
+            f"\n  ⚠ WARNING: {len(problems)} active employee(s) need setup in Supabase "
+            "(missing emp_id → hidden from reports; missing shift times → attendance not computed):"
+        )
+        for eid, name, missing in sorted(problems, key=lambda p: str(p[1])):
+            print(f"      - [{eid}] {name}: missing {missing}")
+
+
 def _validate_date(s: str) -> str:
     try:
         return datetime.strptime(s, "%Y-%m-%d").date().isoformat()
@@ -349,6 +386,7 @@ def main() -> None:
     finally:
         cur.close()
         conn.close()
+    warn_incomplete_employees(sb)
     print("done.")
 
 

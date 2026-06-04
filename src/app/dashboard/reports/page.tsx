@@ -89,8 +89,11 @@ export default function ReportsPage() {
       const metrics = metricsFromRow(metricsMap.get(emp.employee_id));
       const attendancePct = totalDaysInMonth > 0 ? Math.round((metrics.totalWorkingDays / totalDaysInMonth) * 100) : 0;
 
-      // Days off: full-day leave + half-day leave (0.5) + all Sundays in the month
-      const daysOff = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundaysInMonth;
+      // Days off: full-day leave + half-day leave (0.5) + Sundays.
+      // STORE (dept 24) works Sundays, so only count the Sundays they were absent
+      // (didn't work); every other department counts all Sundays in the month.
+      const sundayDaysOff = emp.department_id === 24 ? metrics.sundaysAbsent : sundaysInMonth;
+      const daysOff = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundayDaysOff;
       // Adjusted leave: days off + HD/L as 0.5 each + MP as full day each
       const adjLeave = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchDays;
       // Adjusted overtime: raw overtime minus loss of time
@@ -319,11 +322,11 @@ export default function ReportsPage() {
     }).sort((a, b) => a.deptName.localeCompare(b.deptName));
   })();
 
-  const deptComparisonData = departmentReports.map((d) => ({
-    department: d.deptName,
-    "Avg Attendance %": d.avgAttendance,
-    "Total Leave": d.totalLeave,
-  }));
+  // const deptComparisonData = departmentReports.map((d) => ({
+  //   department: d.deptName,
+  //   "Avg Attendance %": d.avgAttendance,
+  //   "Total Leave": d.totalLeave,
+  // }));
 
   // Summary stats (derived from visibleReports so numbers stay consistent with the table)
   const totalPresent = visibleReports.reduce((s, r) => s + r.daysPresent, 0);
@@ -465,7 +468,7 @@ export default function ReportsPage() {
                 </button>
               </div>
 
-              {/* Department comparison chart */}
+              {/* Department comparison chart
               <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h3 className="mb-4 text-lg font-semibold text-slate-900">Department Comparison</h3>
                 {deptComparisonData.length > 0 ? (
@@ -483,7 +486,7 @@ export default function ReportsPage() {
                 ) : (
                   <p className="py-12 text-center text-slate-400">No data available</p>
                 )}
-              </div>
+              </div> */}
 
               {/* Department summary cards */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

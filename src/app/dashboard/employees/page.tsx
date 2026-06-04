@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import type { Employee, Department } from "@/lib/types";
@@ -495,8 +495,8 @@ export default function EmployeesPage() {
                 </tr>
               ) : (
                 groupedEmployees.map((group) => (
-                  <>
-                    <tr key={`dept-${group.deptName}`} className="bg-indigo-50">
+                  <Fragment key={group.deptName}>
+                    <tr className="bg-indigo-50">
                       <td
                         colSpan={7}
                         className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-indigo-600"
@@ -571,7 +571,7 @@ export default function EmployeesPage() {
                         </td>
                       </tr>
                     ))}
-                  </>
+                  </Fragment>
                 ))
               )}
             </tbody>

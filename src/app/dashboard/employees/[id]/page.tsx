@@ -151,7 +151,10 @@ export default function EmployeeDetailPage() {
     }
     return count;
   })();
-  const daysOff   = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundaysInMonth;
+  // STORE (dept 24) works Sundays → only count the Sundays they were absent;
+  // every other department counts all Sundays in the month.
+  const sundayDaysOff = employee?.department_id === 24 ? metrics.sundaysAbsent : sundaysInMonth;
+  const daysOff   = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundayDaysOff;
   const adjLeave  = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchDays;
   const adjOtMins = metrics.overtimeMinutes - metrics.lotMinutes;
 

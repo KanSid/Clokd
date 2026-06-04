@@ -98,6 +98,7 @@ export interface MonthlyMetricsRow {
   total_p: number;          // SUM(present): payroll present-equivalent (P=1, half-day=0.5)
   days_present: number;     // days physically came to work (each a whole day)
   sundays_worked: number;   // Sundays with overtime
+  sundays_absent: number;   // Sundays not worked (present=0) — Store "days off" component
   early_left: number;       // HD/E count (deprecated — HD/E removed; always 0)
   hd_late: number;          // HD/L count
   half_day_normal: number;  // normal half-days (½P / HD)
@@ -117,6 +118,7 @@ export function metricsFromRow(row?: MonthlyMetricsRow | null): EmployeeMetrics 
     totalP: row?.total_p ?? 0,
     totalWorkingDays: row?.days_present ?? 0,
     totalSundaysWorked: row?.sundays_worked ?? 0,
+    sundaysAbsent: row?.sundays_absent ?? 0,
     totalLeaves: row?.days_leave ?? 0,
     earlyLeaveDays: row?.early_left ?? 0,
     hdLateDays: row?.hd_late ?? 0,
