@@ -1,21 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { AttendanceRecord, Employee } from "@/lib/types";
 import { formatDate, formatTime, formatDuration } from "@/lib/utils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  LineChart,
-  Line,
-  ResponsiveContainer,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+// Lazy load recharts
+const BarChart = dynamic(() => import("recharts").then(mod => mod.BarChart), { ssr: false });
+const Bar = dynamic(() => import("recharts").then(mod => mod.Bar), { ssr: false });
+const XAxis = dynamic(() => import("recharts").then(mod => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import("recharts").then(mod => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import("recharts").then(mod => mod.CartesianGrid), { ssr: false });
+const Tooltip = dynamic(() => import("recharts").then(mod => mod.Tooltip), { ssr: false });
+const Legend = dynamic(() => import("recharts").then(mod => mod.Legend), { ssr: false });
+const LineChart = dynamic(() => import("recharts").then(mod => mod.LineChart), { ssr: false });
+const Line = dynamic(() => import("recharts").then(mod => mod.Line), { ssr: false });
+const ResponsiveContainer = dynamic(() => import("recharts").then(mod => mod.ResponsiveContainer), { ssr: false });
 
 interface StatCardProps {
   title: string;
@@ -60,6 +61,92 @@ function SkeletonChart() {
     </div>
   );
 }
+
+// Lazy load chart components
+const ChartsSection = lazy(() => Promise.resolve({
+  default: ({ deptChartData, dailyTrendData, loading }: any) => (
+    <>
+      {loading ? (
+        <>
+          <SkeletonChart />
+          <SkeletonChart />
+        </>
+      ) : (
+        <>
+          {/* Department-wise Attendance */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              Department-wise Attendance (This Month)
+            </h2>
+            {deptChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={deptChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="department"
+                    tick={{ fontSize: 12 }}
+                    angle={-20}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="present"
+                    fill="#6366f1"
+                    name="Present"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="leave"
+                    fill="#f87171"
+                    name="Leave"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="py-12 text-center text-gray-400">
+                No data available
+              </p>
+            )}
+          </div>
+
+          {/* Monthly Attendance Trend */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              Monthly Attendance Trend
+            </h2>
+            {dailyTrendData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={dailyTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="present"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    name="Present"
+                    dot={{ r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="py-12 text-center text-gray-400">
+                No data available
+              </p>
+            )}
+          </div>
+        </>
+      )}
+    </>
+  )
+}));
 
 interface DeptChartData {
   department: string;
@@ -302,87 +389,12 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {loading ? (
-          <>
-            <SkeletonChart />
-            <SkeletonChart />
-          </>
-        ) : (
-          <>
-            {/* Department-wise Attendance */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                Department-wise Attendance (This Month)
-              </h2>
-              {deptChartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={deptChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="department"
-                      tick={{ fontSize: 12 }}
-                      angle={-20}
-                      textAnchor="end"
-                      height={60}
-                    />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar
-                      dataKey="present"
-                      fill="#6366f1"
-                      name="Present"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="leave"
-                      fill="#f87171"
-                      name="Leave"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="py-12 text-center text-gray-400">
-                  No data available
-                </p>
-              )}
-            </div>
-
-            {/* Monthly Attendance Trend */}
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                Monthly Attendance Trend
-              </h2>
-              {dailyTrendData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={dailyTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="present"
-                      stroke="#6366f1"
-                      strokeWidth={2}
-                      name="Present"
-                      dot={{ r: 3 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="py-12 text-center text-gray-400">
-                  No data available
-                </p>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+      {/* Charts Row - Lazy loaded */}
+      <Suspense fallback={<div className="grid grid-cols-1 gap-6 lg:grid-cols-2"><SkeletonChart /><SkeletonChart /></div>}>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <ChartsSection deptChartData={deptChartData} dailyTrendData={dailyTrendData} loading={loading} />
+        </div>
+      </Suspense>
 
       {/* Recent Attendance Table */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
