@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense, lazy } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { Department, Employee, AttendanceRecord } from "@/lib/types";
 import {
@@ -15,19 +15,20 @@ import {
   ChevronUp,
   X,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+// Lazy load all recharts components
+const BarChart = dynamic(() => import("recharts").then(m => m.BarChart), { ssr: false });
+const Bar = dynamic(() => import("recharts").then(m => m.Bar), { ssr: false });
+const XAxis = dynamic(() => import("recharts").then(m => m.XAxis), { ssr: false });
+const YAxis = dynamic(() => import("recharts").then(m => m.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import("recharts").then(m => m.CartesianGrid), { ssr: false });
+const Tooltip = dynamic(() => import("recharts").then(m => m.Tooltip), { ssr: false });
+const Legend = dynamic(() => import("recharts").then(m => m.Legend), { ssr: false });
+const ResponsiveContainer = dynamic(() => import("recharts").then(m => m.ResponsiveContainer), { ssr: false });
+const PieChart = dynamic(() => import("recharts").then(m => m.PieChart), { ssr: false });
+const Pie = dynamic(() => import("recharts").then(m => m.Pie), { ssr: false });
+const Cell = dynamic(() => import("recharts").then(m => m.Cell), { ssr: false });
 
 interface DeptStats {
   totalPresent: number;
@@ -74,36 +75,34 @@ export default function DepartmentsPage() {
       .toISOString()
       .split("T")[0];
 
-    const { data: depts } = await supabase
-      .from("department")
-      .select("*")
-      .order("dept_name");
+    // 3 parallel queries instead of 2N+1 sequential
+    const [{ data: depts }, { data: allEmployees }, { data: allAttendance }] =
+      await Promise.all([
+        supabase.from("department").select("*").order("dept_name"),
+        supabase.from("employees").select("*"),
+        supabase
+          .from("attendance")
+          .select("*")
+          .gte("attendance_date", monthStart)
+          .lte("attendance_date", monthEnd),
+      ]);
 
     if (!depts) {
       setLoading(false);
       return;
     }
 
-    const deptsWithStats: DeptWithStats[] = [];
+    const employees: Employee[] = allEmployees || [];
+    const attendance: AttendanceRecord[] = allAttendance || [];
 
-    for (const dept of depts) {
-      const { data: employees } = await supabase
-        .from("employees")
-        .select("*")
-        .eq("department_id", dept.department_id);
-
-      const empIds = (employees || []).map((e: Employee) => e.employee_id);
-
-      let attendanceRecords: AttendanceRecord[] = [];
-      if (empIds.length > 0) {
-        const { data: att } = await supabase
-          .from("attendance")
-          .select("*")
-          .in("employee_id", empIds)
-          .gte("attendance_date", monthStart)
-          .lte("attendance_date", monthEnd);
-        attendanceRecords = att || [];
-      }
+    const deptsWithStats: DeptWithStats[] = depts.map((dept) => {
+      const deptEmployees = employees.filter(
+        (e) => e.department_id === dept.department_id
+      );
+      const empIds = new Set(deptEmployees.map((e) => e.employee_id));
+      const attendanceRecords = attendance.filter((a) =>
+        empIds.has(a.employee_id)
+      );
 
       const totalPresent = attendanceRecords.reduce(
         (sum, a) => sum + (a.present || 0),
@@ -113,8 +112,8 @@ export default function DepartmentsPage() {
         attendanceRecords.map((a) => a.attendance_date)
       ).size;
       const avgAttendance =
-        empIds.length > 0 && workingDays > 0
-          ? (totalPresent / (empIds.length * workingDays)) * 100
+        empIds.size > 0 && workingDays > 0
+          ? (totalPresent / (empIds.size * workingDays)) * 100
           : 0;
       const totalLate = attendanceRecords.filter(
         (a) => a.late_by && a.late_by > 0
@@ -124,21 +123,19 @@ export default function DepartmentsPage() {
         0
       );
 
-      const employeesWithStats = (employees || []).map((emp: Employee) => {
+      const employeesWithStats = deptEmployees.map((emp) => {
         const empAtt = attendanceRecords.filter(
           (a) => a.employee_id === emp.employee_id
         );
         return {
           ...emp,
           present: empAtt.reduce((s, a) => s + (a.present || 0), 0),
-          late: empAtt.filter(
-            (a) => a.late_by && a.late_by > 0
-          ).length,
+          late: empAtt.filter((a) => a.late_by && a.late_by > 0).length,
           overtime: empAtt.reduce((s, a) => s + (a.overtime || 0), 0),
         };
       });
 
-      deptsWithStats.push({
+      return {
         ...dept,
         stats: {
           totalPresent: Math.round(totalPresent * 10) / 10,
@@ -147,8 +144,8 @@ export default function DepartmentsPage() {
           totalOvertime,
         },
         employees: employeesWithStats,
-      });
-    }
+      };
+    });
 
     setDepartments(deptsWithStats);
     setLoading(false);
@@ -265,17 +262,9 @@ export default function DepartmentsPage() {
     value: d.staff_count,
   }));
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Header — always renders immediately (LCP element) */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Departments</h1>
@@ -294,6 +283,22 @@ export default function DepartmentsPage() {
 
       {/* Department Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {loading && Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="animate-pulse bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gray-200" />
+              <div className="space-y-1">
+                <div className="h-4 w-32 rounded bg-gray-200" />
+                <div className="h-3 w-20 rounded bg-gray-200" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, j) => (
+                <div key={j} className="h-16 rounded-lg bg-gray-100" />
+              ))}
+            </div>
+          </div>
+        ))}
         {departments.map((dept) => (
           <div
             key={dept.department_id}
@@ -432,8 +437,8 @@ export default function DepartmentsPage() {
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts — deferred until after cards render */}
+      {!loading && <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Bar Chart - Department Comparison */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -494,7 +499,7 @@ export default function DepartmentsPage() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </div>}
 
       {/* Add/Edit Modal */}
       {showModal && (
