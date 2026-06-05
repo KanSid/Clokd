@@ -36,7 +36,7 @@ interface EmployeeReport {
   sundaysWorked: number;
   halfDayNormal: number;
   earlyLeaveDays: number; // HD/E (deprecated)
-  hdLateDays: number;     // HD/L
+  hdLateDays: number;     // HD/L Half-day late arrival 
   missedPunchDays: number;
   daysOff: number;        // full-day leave + 0.5*half-day + all Sundays in month
   adjLeave: number;       // daysOff + 0.5*HD/L
