@@ -160,18 +160,36 @@ export default function ReportsPage() {
   const monthName = new Date(year, month - 1).toLocaleString("default", { month: "long" });
 
   const handleExport = () => {
-    const data = visibleReports.map((r) => ({
-      "Emp ID": r.empId,
-      Name: r.employee.employee_name,
-      Department: r.deptName,
-      MP: r.missedPunchDays,
-      "Days Off": Math.round(r.daysOff * 10) / 10,
-      "HD/L": r.hdLateDays,
-      "Adj Leave": Math.round(r.adjLeave * 10) / 10,
-      "Overtime (HH:MM)": r.overtimeFormatted,
-      "LOT (HH:MM)": formatMinutes(r.lotMinutes),
-      "Adj OT (HH:MM)": formatMinutes(r.adjOtMinutes),
-    }));
+    // Mirror the UI grouping: department header row followed by employee rows
+    const data: Record<string, unknown>[] = [];
+    for (const group of groupedVisible) {
+      // Department header row
+      data.push({
+        "Emp ID": `— ${group.deptName} (${group.emps.length}) —`,
+        Name: "",
+        MP: "",
+        "Days Off": "",
+        "HD/L": "",
+        "Adj Leave": "",
+        "Overtime (HH:MM)": "",
+        "LOT (HH:MM)": "",
+        "Adj OT (HH:MM)": "",
+      });
+      // Employee rows
+      for (const r of group.emps) {
+        data.push({
+          "Emp ID": r.empId,
+          Name: r.employee.employee_name,
+          MP: r.missedPunchDays,
+          "Days Off": Math.round(r.daysOff * 10) / 10,
+          "HD/L": r.hdLateDays,
+          "Adj Leave": Math.round(r.adjLeave * 10) / 10,
+          "Overtime (HH:MM)": r.overtimeFormatted,
+          "LOT (HH:MM)": formatMinutes(r.lotMinutes),
+          "Adj OT (HH:MM)": formatMinutes(r.adjOtMinutes),
+        });
+      }
+    }
     exportToCSV(data, `attendance-report-${year}-${String(month).padStart(2, "0")}.csv`);
   };
 
