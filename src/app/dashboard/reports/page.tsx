@@ -94,8 +94,9 @@ export default function ReportsPage() {
       // (didn't work); every other department counts all Sundays in the month.
       const sundayDaysOff = emp.department_id === 24 ? metrics.sundaysAbsent : sundaysInMonth;
       const daysOff = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundayDaysOff;
-      // Adjusted leave: days off + HD/L as 0.5 each + MP as full day each
-      const adjLeave = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchDays;
+      // Adjusted leave: days off + HD/L as 0.5 each + weekday MP only
+      // (Sunday MPs are already captured in Days Off via the Sunday component)
+      const adjLeave = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchWeekdays;
       // Adjusted overtime: raw overtime minus loss of time
       const adjOtMinutes = metrics.overtimeMinutes - metrics.lotMinutes;
 

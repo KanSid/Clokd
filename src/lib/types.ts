@@ -67,7 +67,8 @@ export interface EmployeeMetrics {
   earlyLeaveDays: number;    // HD/E count (deprecated — HD/E removed)
   hdLateDays: number;        // HD/L count
   halfDayNormal: number;     // normal half-days (½P / HD)
-  missedPunchDays: number;   // MP count
+  missedPunchDays: number;        // MP count (display)
+  missedPunchWeekdays: number;    // weekday MP only — used in Adj Leave
   lotMinutes: number;        // loss of time: Σ early_by on Present days
   overtimeMinutes: number;
   overtimeFormatted: string;

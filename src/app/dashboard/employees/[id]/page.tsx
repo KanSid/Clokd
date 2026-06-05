@@ -155,7 +155,7 @@ export default function EmployeeDetailPage() {
   // every other department counts all Sundays in the month.
   const sundayDaysOff = employee?.department_id === 24 ? metrics.sundaysAbsent : sundaysInMonth;
   const daysOff   = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundayDaysOff;
-  const adjLeave  = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchDays;
+  const adjLeave  = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchWeekdays;
   const adjOtMins = metrics.overtimeMinutes - metrics.lotMinutes;
 
   const openEditAttendance = (rec: AttendanceRecord) => {
