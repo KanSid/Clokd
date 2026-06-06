@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense, lazy } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { AttendanceRecord, Employee } from "@/lib/types";
 import { formatDate, formatTime, formatDuration } from "@/lib/utils";
@@ -62,91 +62,6 @@ function SkeletonChart() {
   );
 }
 
-// Lazy load chart components
-const ChartsSection = lazy(() => Promise.resolve({
-  default: ({ deptChartData, dailyTrendData, loading }: any) => (
-    <>
-      {loading ? (
-        <>
-          <SkeletonChart />
-          <SkeletonChart />
-        </>
-      ) : (
-        <>
-          {/* Department-wise Attendance */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Department-wise Attendance (This Month)
-            </h2>
-            {deptChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={deptChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="department"
-                    tick={{ fontSize: 12 }}
-                    angle={-20}
-                    textAnchor="end"
-                    height={60}
-                  />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar
-                    dataKey="present"
-                    fill="#6366f1"
-                    name="Present"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="leave"
-                    fill="#f87171"
-                    name="Leave"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="py-12 text-center text-gray-400">
-                No data available
-              </p>
-            )}
-          </div>
-
-          {/* Monthly Attendance Trend */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
-              Monthly Attendance Trend
-            </h2>
-            {dailyTrendData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={dailyTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="present"
-                    stroke="#6366f1"
-                    strokeWidth={2}
-                    name="Present"
-                    dot={{ r: 3 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="py-12 text-center text-gray-400">
-                No data available
-              </p>
-            )}
-          </div>
-        </>
-      )}
-    </>
-  )
-}));
 
 interface DeptChartData {
   department: string;
@@ -160,22 +75,21 @@ interface DailyTrendData {
 }
 
 export default function DashboardPage() {
-  const [loading, setLoading] = useState(true);
+  // Phase 1: stat cards (fast — today's data only)
+  const [loadingStats, setLoadingStats] = useState(true);
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [presentToday, setPresentToday] = useState(0);
   const [onLeaveToday, setOnLeaveToday] = useState(0);
   const [lateToday, setLateToday] = useState(0);
   const [earlyLeaveToday, setEarlyLeaveToday] = useState(0);
+
+  // Phase 2: table + charts (heavier — monthly data)
+  const [loadingCharts, setLoadingCharts] = useState(true);
   const [recentRecords, setRecentRecords] = useState<AttendanceRecord[]>([]);
   const [deptChartData, setDeptChartData] = useState<DeptChartData[]>([]);
   const [dailyTrendData, setDailyTrendData] = useState<DailyTrendData[]>([]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  async function fetchDashboardData() {
-    setLoading(true);
     const today = new Date().toISOString().split("T")[0];
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -185,97 +99,77 @@ export default function DashboardPage() {
       .toISOString()
       .split("T")[0];
 
-    try {
-      // Total employees
-      const { count: empCount } = await supabase
-        .from("employees")
-        .select("*", { count: "exact", head: true });
-      setTotalEmployees(empCount ?? 0);
-
-      // Today's attendance
-      const { data: todayAttendance } = await supabase
-        .from("attendance")
-        .select("*")
-        .eq("attendance_date", today);
-
+    // Phase 1: fire stat queries in parallel, resolve as soon as they're done
+    Promise.all([
+      supabase.from("employees").select("*", { count: "exact", head: true }),
+      supabase.from("attendance").select("*").eq("attendance_date", today),
+    ]).then(([{ count: empCount }, { data: todayAttendance }]) => {
       const todayRecords: AttendanceRecord[] = (todayAttendance ?? []) as AttendanceRecord[];
-      setPresentToday(
-        todayRecords.filter((r) => r.present === 1 || r.status === "Present")
-          .length
-      );
+      setTotalEmployees(empCount ?? 0);
+      setPresentToday(todayRecords.filter((r) => r.present === 1 || r.status === "Present").length);
       setOnLeaveToday(todayRecords.filter((r) => r.is_on_leave).length);
-      setLateToday(
-        todayRecords.filter((r) => r.late_by && r.late_by > 0).length
-      );
-      setEarlyLeaveToday(
-        todayRecords.filter((r) => r.early_by && r.early_by > 0).length
-      );
+      setLateToday(todayRecords.filter((r) => r.late_by && r.late_by > 0).length);
+      setEarlyLeaveToday(todayRecords.filter((r) => r.early_by && r.early_by > 0).length);
+      setLoadingStats(false);
+    }).catch((err) => {
+      console.error("Stats fetch error:", err);
+      setLoadingStats(false);
+    });
 
-      // Recent 10 records
-      const { data: recent } = await supabase
+    // Phase 2: fire heavy queries in parallel, independent of phase 1
+    Promise.all([
+      supabase
         .from("attendance")
         .select("*")
         .order("attendance_date", { ascending: false })
         .order("in_time", { ascending: false })
-        .limit(10);
+        .limit(10),
+      supabase
+        .from("attendance")
+        .select("attendance_date, present, status, employee:employees(department:department(dept_name))")
+        .gte("attendance_date", startOfMonth)
+        .lte("attendance_date", endOfMonth),
+    ]).then(([{ data: recent }, { data: monthlyAttendance }]) => {
       setRecentRecords(recent ?? []);
 
-      // Monthly attendance for dept chart
-      const { data: monthlyAttendance } = await supabase
-        .from("attendance")
-        .select("*, employee:employees(department:department(dept_name))")
-        .gte("attendance_date", startOfMonth)
-        .lte("attendance_date", endOfMonth);
-
-      // Group by department
       const deptMap: Record<string, { present: number; leave: number }> = {};
-      (monthlyAttendance ?? []).forEach((rec: any) => {
-        const deptName =
-          rec.employee?.department?.dept_name ?? "Unknown";
-        if (!deptMap[deptName]) deptMap[deptName] = { present: 0, leave: 0 };
-        if (rec.present === 1 || rec.status === "Present") {
-          deptMap[deptName].present += 1;
-        } else {
-          deptMap[deptName].leave += 1;
-        }
-      });
-      setDeptChartData(
-        Object.entries(deptMap).map(([department, vals]) => ({
-          department,
-          ...vals,
-        }))
-      );
-
-      // Daily trend for current month
       const dailyMap: Record<string, number> = {};
+
       (monthlyAttendance ?? []).forEach((rec: any) => {
-        const d = rec.attendance_date;
-        if (!dailyMap[d]) dailyMap[d] = 0;
-        if (rec.present === 1 || rec.status === "Present") {
-          dailyMap[d] += 1;
+        const isPresent = rec.present === 1 || rec.status === "Present";
+        // dept chart
+        const deptName = rec.employee?.department?.dept_name ?? "Unknown";
+        if (!deptMap[deptName]) deptMap[deptName] = { present: 0, leave: 0 };
+        if (isPresent) deptMap[deptName].present += 1;
+        else deptMap[deptName].leave += 1;
+        // daily trend
+        if (isPresent) {
+          dailyMap[rec.attendance_date] = (dailyMap[rec.attendance_date] ?? 0) + 1;
         }
       });
-      const trendData = Object.entries(dailyMap)
-        .map(([date, present]) => ({
-          date: date.slice(5), // MM-DD
-          present,
-        }))
-        .sort((a, b) => a.date.localeCompare(b.date));
-      setDailyTrendData(trendData);
-    } catch (err) {
-      console.error("Dashboard fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
+
+      setDeptChartData(
+        Object.entries(deptMap).map(([department, vals]) => ({ department, ...vals }))
+      );
+      setDailyTrendData(
+        Object.entries(dailyMap)
+          .map(([date, present]) => ({ date: date.slice(5), present }))
+          .sort((a, b) => a.date.localeCompare(b.date))
+      );
+      setLoadingCharts(false);
+    }).catch((err) => {
+      console.error("Charts fetch error:", err);
+      setLoadingCharts(false);
+    });
+  }, []);
 
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
 
-      {/* Stat Cards */}
+      {/* Stat Cards — Phase 1, resolves fast (today only) */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
-        {loading ? (
+        {loadingStats ? (
           <>
             <SkeletonCard />
             <SkeletonCard />
@@ -389,19 +283,67 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Charts Row - Lazy loaded */}
-      <Suspense fallback={<div className="grid grid-cols-1 gap-6 lg:grid-cols-2"><SkeletonChart /><SkeletonChart /></div>}>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <ChartsSection deptChartData={deptChartData} dailyTrendData={dailyTrendData} loading={loading} />
-        </div>
-      </Suspense>
+      {/* Charts Row — Phase 2, deferred (monthly data + recharts) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {loadingCharts ? (
+          <>
+            <SkeletonChart />
+            <SkeletonChart />
+          </>
+        ) : (
+          <>
+            {/* Department-wise Attendance */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                Department-wise Attendance (This Month)
+              </h2>
+              {deptChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={deptChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="department" tick={{ fontSize: 12 }} angle={-20} textAnchor="end" height={60} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="present" fill="#6366f1" name="Present" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="leave" fill="#f87171" name="Leave" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="py-12 text-center text-gray-400">No data available</p>
+              )}
+            </div>
 
-      {/* Recent Attendance Table */}
+            {/* Monthly Attendance Trend */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                Monthly Attendance Trend
+              </h2>
+              {dailyTrendData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={dailyTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="present" stroke="#6366f1" strokeWidth={2} name="Present" dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="py-12 text-center text-gray-400">No data available</p>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Recent Attendance Table — Phase 2 */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">
           Recent Attendance Records
         </h2>
-        {loading ? (
+        {loadingCharts ? (
           <div className="animate-pulse space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="h-10 rounded bg-gray-100" />
