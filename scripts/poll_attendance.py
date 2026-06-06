@@ -1,4 +1,4 @@
-"""Poll the latest eTimeTrackLite .mdb file in the repo root and sync to Supabase.
+"""Poll the latest sorted by time eTimeTrackLite .mdb file in the repo root and sync to Supabase.
 
 Reads:
   - Departments  -> public.department
