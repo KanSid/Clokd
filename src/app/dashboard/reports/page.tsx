@@ -89,11 +89,22 @@ export default function ReportsPage() {
       const metrics = metricsFromRow(metricsMap.get(emp.employee_id));
       const attendancePct = totalDaysInMonth > 0 ? Math.round((metrics.totalWorkingDays / totalDaysInMonth) * 100) : 0;
 
-      // Days off: full-day leave + half-day leave (0.5) + Sundays.
+      // Days off: full-day leave + half-day leave (0.5) + Sundays + pre-join days.
       // STORE (dept 24) works Sundays, so only count the Sundays they were absent
       // (didn't work); every other department counts all Sundays in the month.
       const sundayDaysOff = emp.department_id === 24 ? metrics.sundaysAbsent : sundaysInMonth;
-      const daysOff = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundayDaysOff;
+
+      // Pre-join days: a mid-month joiner's days before their first record are "off".
+      // UNIT/others already count all calendar Sundays, so add only pre-join NON-Sundays;
+      // STORE's Sunday component is row-based, so add ALL pre-join days.
+      let preJoinTotal = 0, preJoinNonSun = 0;
+      for (let d = 1; d < metrics.firstRecordDay; d++) {
+        preJoinTotal++;
+        if (new Date(year, month - 1, d).getDay() !== 0) preJoinNonSun++;
+      }
+      const preJoinOff = emp.department_id === 24 ? preJoinTotal : preJoinNonSun;
+
+      const daysOff = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundayDaysOff + preJoinOff;
       // Adjusted leave: days off + HD/L as 0.5 each + weekday MP only
       // (Sunday MPs are already captured in Days Off via the Sunday component)
       const adjLeave = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchWeekdays;

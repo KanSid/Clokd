@@ -108,6 +108,7 @@ export interface MonthlyMetricsRow {
   days_leave: number;            // full-day leaves + absences (excl. Sundays & holidays)
   lot_minutes: number;      // loss of time: Σ early_by on Present days
   overtime_minutes: number; // SUM(overtime) excluding leave days
+  first_record_day: number; // earliest day-of-month with a record (1 = established; >1 = joined mid-month)
 }
 
 /**
@@ -128,6 +129,7 @@ export function metricsFromRow(row?: MonthlyMetricsRow | null): EmployeeMetrics 
     missedPunchDays: row?.missed_punch ?? 0,
     missedPunchWeekdays: row?.missed_punch_weekday ?? 0,
     lotMinutes: row?.lot_minutes ?? 0,
+    firstRecordDay: row?.first_record_day ?? 1,
     overtimeMinutes: ot,
     overtimeFormatted: formatMinutes(ot),
   };

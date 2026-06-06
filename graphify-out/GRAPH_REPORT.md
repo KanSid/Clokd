@@ -1,11 +1,11 @@
-# Graph Report - .  (2026-06-04)
+# Graph Report - .  (2026-06-06)
 
 ## Corpus Check
-- 33 files · ~24,960 words
+- 33 files · ~25,585 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 113 nodes · 136 edges · 15 communities detected
+- 112 nodes · 135 edges · 15 communities detected
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.75)
 - Token cost: 0 input · 0 output
 
@@ -40,7 +40,7 @@ Cohesion: 0.15
 Nodes (19): _coerce_date(), _coerce_dt(), connect_mdb(), latest_mdb(), load_env(), main(), Poll the latest eTimeTrackLite .mdb file in the repo root and sync to Supabase., Return the set of existing values for `column` (paged). (+11 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.08
+Cohesion: 0.09
 Nodes (3): fetchEmployees(), handleDelete(), handleSave()
 
 ### Community 2 - "Community 2"
@@ -81,7 +81,7 @@ Nodes (1): Next.js Type References
 
 ### Community 11 - "Community 11"
 Cohesion: 1.0
-Nodes (1): Root App Layout
+Nodes (0): 
 
 ### Community 12 - "Community 12"
 Cohesion: 1.0
@@ -96,7 +96,7 @@ Cohesion: 1.0
 Nodes (1): StatCard Component
 
 ## Knowledge Gaps
-- **29 isolated node(s):** `Next.js Type References`, `Security Headers Config`, `Poll the latest eTimeTrackLite .mdb file in the repo root and sync to Supabase.`, `Return the set of existing values for `column` (paged).`, `Return rows for `table` with the given select columns + optional filter (paged).` (+24 more)
+- **28 isolated node(s):** `Next.js Type References`, `Security Headers Config`, `Poll the latest eTimeTrackLite .mdb file in the repo root and sync to Supabase.`, `Return the set of existing values for `column` (paged).`, `Return rows for `table` with the given select columns + optional filter (paged).` (+23 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 7`** (2 nodes): `Holidays Page (CRUD + year overview)`, `Supabase Table: holidays`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -106,7 +106,7 @@ Nodes (1): StatCard Component
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 10`** (1 nodes): `Next.js Type References`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 11`** (1 nodes): `Root App Layout`
+- **Thin community `Community 11`** (1 nodes): `layout.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 12`** (1 nodes): `Root Page (redirect to dashboard)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -119,8 +119,8 @@ Nodes (1): StatCard Component
 _Questions this graph is uniquely positioned to answer:_
 
 - **What connects `Next.js Type References`, `Security Headers Config`, `Poll the latest eTimeTrackLite .mdb file in the repo root and sync to Supabase.` to the rest of the system?**
-  _29 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _28 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.14 - nodes in this community are weakly interconnected._

@@ -154,7 +154,18 @@ export default function EmployeeDetailPage() {
   // STORE (dept 24) works Sundays → only count the Sundays they were absent;
   // every other department counts all Sundays in the month.
   const sundayDaysOff = employee?.department_id === 24 ? metrics.sundaysAbsent : sundaysInMonth;
-  const daysOff   = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundayDaysOff;
+
+  // Pre-join days: a mid-month joiner's days before their first record are "off".
+  // UNIT/others already count all calendar Sundays → add only pre-join NON-Sundays;
+  // STORE's Sunday component is row-based → add ALL pre-join days.
+  let preJoinTotal = 0, preJoinNonSun = 0;
+  for (let d = 1; d < metrics.firstRecordDay; d++) {
+    preJoinTotal++;
+    if (new Date(year, month - 1, d).getDay() !== 0) preJoinNonSun++;
+  }
+  const preJoinOff = employee?.department_id === 24 ? preJoinTotal : preJoinNonSun;
+
+  const daysOff   = metrics.totalLeaves + 0.5 * metrics.halfDayNormal + sundayDaysOff + preJoinOff;
   const adjLeave  = daysOff + 0.5 * metrics.hdLateDays + metrics.missedPunchWeekdays;
   const adjOtMins = metrics.overtimeMinutes - metrics.lotMinutes;
 

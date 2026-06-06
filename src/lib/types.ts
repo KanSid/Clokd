@@ -70,6 +70,7 @@ export interface EmployeeMetrics {
   missedPunchDays: number;        // MP count (display)
   missedPunchWeekdays: number;    // weekday MP only — used in Adj Leave
   lotMinutes: number;        // loss of time: Σ early_by on Present days
+  firstRecordDay: number;    // earliest day-of-month with a record (1 = established; >1 = joined mid-month)
   overtimeMinutes: number;
   overtimeFormatted: string;
 }
