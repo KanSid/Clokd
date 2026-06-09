@@ -39,6 +39,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // ADMS fingerprint scanners hardcode the path prefix /iclock/* and cannot
+  // be changed. This rewrite silently maps the device's calls to our API routes.
+  // Device calls:  POST /iclock/cdata        → /api/iclock/cdata
+  //                GET  /iclock/getrequest   → /api/iclock/getrequest
+  //                POST /iclock/devicecmd    → /api/iclock/devicecmd
+  async rewrites() {
+    return [
+      {
+        source: "/iclock/:path*",
+        destination: "/api/iclock/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
