@@ -302,9 +302,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     "Encrypt=0",
   ].join("\r\n");
 
+  // Send IST time as the Date header so the device syncs its clock to IST.
+  // Vercel runs in UTC; without this override the device would reset to UTC on
+  // every handshake. We lie and label IST as "GMT" — the device treats it as
+  // its local clock reference, matching the MDB pipeline convention.
+  const istMs = Date.now() + (5 * 60 + 30) * 60 * 1000;
+  const istAsGmt = new Date(istMs).toUTCString();
+
   return new NextResponse(config, {
     status: 200,
-    headers: { "Content-Type": "text/plain" },
+    headers: {
+      "Content-Type": "text/plain",
+      "Date": istAsGmt,
+    },
   });
 }
 
