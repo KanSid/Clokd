@@ -47,10 +47,12 @@ const nextConfig: NextConfig = {
   //                POST /iclock/devicecmd    → /api/iclock/devicecmd
   async rewrites() {
     return [
-      {
-        source: "/iclock/:path*",
-        destination: "/api/iclock/:path*",
-      },
+      // eSSL F22 firmware appends .aspx to all paths — map to our routes
+      { source: "/iclock/cdata.aspx",       destination: "/api/iclock/cdata" },
+      { source: "/iclock/getrequest.aspx",  destination: "/api/iclock/getrequest" },
+      { source: "/iclock/devicecmd.aspx",   destination: "/api/iclock/devicecmd" },
+      // Fallback for firmware without .aspx
+      { source: "/iclock/:path*",           destination: "/api/iclock/:path*" },
     ];
   },
 };

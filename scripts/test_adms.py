@@ -33,8 +33,8 @@ except ImportError:
 ROOT = Path(__file__).resolve().parent.parent
 ENV_FILE = ROOT / ".env.local"
 
-PASS = "\033[92m✓\033[0m"
-FAIL = "\033[91m✗\033[0m"
+PASS = "\033[92mPASS\033[0m"
+FAIL = "\033[91mFAIL\033[0m"
 
 
 def load_env() -> dict[str, str]:
@@ -90,7 +90,7 @@ def main() -> None:
     session.headers["User-Agent"] = "ZK FP/1.0"  # some devices send this
 
     results: list[bool] = []
-    print(f"\nADMS endpoint tests → {base}  (SN={sn}, UID={uid})\n")
+    print(f"\nADMS endpoint tests -> {base}  (SN={sn}, UID={uid})\n")
 
     # ------------------------------------------------------------------
     # 1. Handshake GET
@@ -172,7 +172,7 @@ def main() -> None:
     # ------------------------------------------------------------------
     passed = sum(results)
     total  = len(results)
-    print(f"\n{'─' * 40}")
+    print(f"\n{'-' * 40}")
     if passed == total:
         print(f"  {PASS}  All {total} tests passed")
     else:

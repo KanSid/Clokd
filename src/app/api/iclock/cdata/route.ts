@@ -54,13 +54,14 @@ function isAllowedSN(sn: string): boolean {
 }
 
 /**
- * Convert a device-local timestamp string ("YYYY-MM-DD HH:MM:SS") to an
- * ISO UTC string by applying the configured timezone offset.
- * Defaults to IST (+05:30) if ADMS_TZ_OFFSET is not set.
+ * Convert a device-local timestamp string ("YYYY-MM-DD HH:MM:SS") to a
+ * Postgres-compatible ISO timestamp string.
+ * ADMS_TZ_OFFSET=+00:00 (default) stores the raw IST time as-is, matching
+ * the existing MDB pipeline convention (IST times stored without UTC conversion).
  */
 function deviceTimeToISO(raw: string): string | null {
   if (!raw.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) return null;
-  const offset = process.env.ADMS_TZ_OFFSET?.trim() ?? "+05:30";
+  const offset = process.env.ADMS_TZ_OFFSET?.trim() ?? "+00:00";
   try {
     return new Date(`${raw.replace(" ", "T")}${offset}`).toISOString();
   } catch {
@@ -80,17 +81,29 @@ interface ParsedBody {
 }
 
 async function parseBody(request: NextRequest): Promise<ParsedBody> {
+  // eSSL F22 firmware puts table type in the URL query string, not the body
+  const tableFromQuery = request.nextUrl.searchParams.get("table")?.toUpperCase() ?? "";
+
   const ct = request.headers.get("content-type") ?? "";
   const raw = await request.text();
 
   if (ct.includes("application/x-www-form-urlencoded")) {
     const params = new URLSearchParams(raw);
+    const tableFromBody = (params.get("table") ?? "").toUpperCase();
     return {
-      table: (params.get("table") ?? "").toUpperCase(),
+      table: tableFromQuery || tableFromBody,
       lines: (params.get("data") ?? "")
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean),
+    };
+  }
+
+  // eSSL F22: table is in query string, body contains raw data lines
+  if (tableFromQuery) {
+    return {
+      table: tableFromQuery,
+      lines: raw.split("\n").map((l) => l.trim()).filter(Boolean),
     };
   }
 
@@ -102,7 +115,6 @@ async function parseBody(request: NextRequest): Promise<ParsedBody> {
     return { table: "ATTLOG", lines: lines.slice(1) };
   }
 
-  // No header — assume ATTLOG (some older firmware omits it)
   return { table: "ATTLOG", lines };
 }
 
@@ -206,12 +218,17 @@ async function processIntoAttendance(
         .map((p) => p.punch_time.slice(11, 16))
         .join(",");
 
-      // 2. Resolve employee name + code
+      // 2. Resolve employee name + code — skip if not in DB (device PIN not mapped)
       const { data: emp } = await supabase
         .from("employees")
         .select("employee_name, employee_code")
         .eq("employee_id", employeeId)
         .single();
+
+      if (!emp) {
+        console.warn(`[adms] employee_id=${employeeId} not in employees table — punch saved, attendance skipped`);
+        continue;
+      }
 
       // 3. Delete any existing ADMS-sourced row for this employee+date
       //    (leaves MDB-sourced rows untouched)
@@ -315,10 +332,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (lines.length === 0) return ok();
 
   // Parse lines into punch rows
+  // Drop punches older than ADMS_START_DATE (device flushes its full backlog on first connect)
+  const startDate = process.env.ADMS_START_DATE?.trim();
+
   const punches: PunchRow[] = [];
   for (const line of lines) {
     const punch = parseLine(line, sn);
-    if (punch) punches.push(punch);
+    if (!punch) continue;
+    if (startDate && punch.punch_time < startDate) continue;
+    punches.push(punch);
   }
 
   if (punches.length === 0) return ok();
