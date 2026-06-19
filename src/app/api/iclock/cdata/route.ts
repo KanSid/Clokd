@@ -302,7 +302,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     "TransTimes=00:00;14:05",
     "TransInterval=1",
     "TransFlag=TransData AttLog OpLog EnrollUser",
-    "TimeZone=5.5",
+    "TimeZone=330",
     "Realtime=1",
     "Encrypt=0",
   ].join("\r\n");
