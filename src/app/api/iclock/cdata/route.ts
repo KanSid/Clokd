@@ -54,16 +54,17 @@ function isAllowedSN(sn: string): boolean {
 }
 
 /**
- * Convert a device-local timestamp string ("YYYY-MM-DD HH:MM:SS") to a
- * Postgres-compatible ISO timestamp string.
- * ADMS_TZ_OFFSET=+00:00 (default) stores the raw IST time as-is, matching
- * the existing MDB pipeline convention (IST times stored without UTC conversion).
+ * Convert a device timestamp ("YYYY-MM-DD HH:MM:SS") to a Postgres ISO string.
+ *
+ * The device receives UTC from Vercel's Date header but applies TimeZone=5.5
+ * from our config, so it displays and sends IST timestamps. We store them
+ * as-is (no offset conversion) — Postgres labels them +00 but the values are
+ * IST, matching the MDB pipeline convention that formatTime() relies on.
  */
 function deviceTimeToISO(raw: string): string | null {
   if (!raw.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) return null;
-  const offset = process.env.ADMS_TZ_OFFSET?.trim() ?? "+00:00";
   try {
-    return new Date(`${raw.replace(" ", "T")}${offset}`).toISOString();
+    return new Date(`${raw.replace(" ", "T")}+00:00`).toISOString();
   } catch {
     return null;
   }
@@ -288,6 +289,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return error();
   }
 
+  // TimeZone=5.5 tells the device to apply IST (UTC+5:30) to the UTC clock
+  // it receives from the server's Date header. The device then displays IST
+  // and sends IST timestamps in ATTLOG — consistent with MDB convention.
   const config = [
     `GET OPTION FROM: ${sn}`,
     "ATTLOGStamp=9999",
@@ -298,23 +302,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     "TransTimes=00:00;14:05",
     "TransInterval=1",
     "TransFlag=TransData AttLog OpLog EnrollUser",
+    "TimeZone=5.5",
     "Realtime=1",
     "Encrypt=0",
   ].join("\r\n");
 
-  // Send IST time as the Date header so the device syncs its clock to IST.
-  // Vercel runs in UTC; without this override the device would reset to UTC on
-  // every handshake. We lie and label IST as "GMT" — the device treats it as
-  // its local clock reference, matching the MDB pipeline convention.
-  const istMs = Date.now() + (5 * 60 + 30) * 60 * 1000;
-  const istAsGmt = new Date(istMs).toUTCString();
-
   return new NextResponse(config, {
     status: 200,
-    headers: {
-      "Content-Type": "text/plain",
-      "Date": istAsGmt,
-    },
+    headers: { "Content-Type": "text/plain" },
   });
 }
 
