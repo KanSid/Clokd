@@ -219,24 +219,28 @@ async function processIntoAttendance(
         .map((p) => p.punch_time.slice(11, 16))
         .join(",");
 
-      // 2. Resolve employee name + code — skip if not in DB (device PIN not mapped)
+      // 2. Resolve employee by device PIN → employee_code.
+      //    The device enrolls users with their employee_code as the PIN,
+      //    so user_id in adms_punches = employee_code in the employees table.
       const { data: emp } = await supabase
         .from("employees")
-        .select("employee_name, employee_code")
-        .eq("employee_id", employeeId)
+        .select("employee_id, employee_name, employee_code")
+        .eq("employee_code", String(employeeId))
         .single();
 
       if (!emp) {
-        console.warn(`[adms] employee_id=${employeeId} not in employees table — punch saved, attendance skipped`);
+        console.warn(`[adms] device PIN ${employeeId} not matched to any employee_code — punch saved, attendance skipped`);
         continue;
       }
+
+      const supabaseEmployeeId = emp.employee_id;
 
       // 3. Delete any existing ADMS-sourced row for this employee+date
       //    (leaves MDB-sourced rows untouched)
       const { error: delErr } = await supabase
         .from("attendance")
         .delete()
-        .eq("employee_id", employeeId)
+        .eq("employee_id", supabaseEmployeeId)
         .eq("attendance_date", date)
         .like("source_db", "adms:%");
 
@@ -249,9 +253,9 @@ async function processIntoAttendance(
       //    DB trigger will fill duration, late_by, early_by, overtime, shift_id
       const { error: insErr } = await supabase.from("attendance").insert({
         attendance_date:  date,
-        employee_id:      employeeId,
-        employee_name:    emp?.employee_name ?? null,
-        employee_code:    emp?.employee_code ?? null,
+        employee_id:      supabaseEmployeeId,
+        employee_name:    emp.employee_name ?? null,
+        employee_code:    emp.employee_code ?? null,
         in_time:          inTime,
         out_time:         outTime,
         punch_records:    punchRecords,
