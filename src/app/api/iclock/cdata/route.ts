@@ -2,12 +2,12 @@
  * ADMS fingerprint scanner receiver — /api/iclock/cdata
  *
  * GET  — device handshake on boot; returns plain-text config options
- * POST — device pushes attendance logs (ATTLOG); we store raw punches in
- *        adms_punches then process them into the attendance table.
+ * POST — device pushes attendance logs (ATTLOG); raw punches are saved to
+ *        adms_punches. A DB trigger (adms_punch_to_attendance) resolves the
+ *        employee and upserts the attendance row automatically.
  *
  * The device MUST receive a plain-text "OK" response to clear its local
- * buffer. Always return OK even if downstream processing fails, as long as
- * the raw punch was saved.
+ * buffer. Always return OK as long as the raw punch was saved.
  *
  * Auth: optional SN check via ADMS_DEVICE_SN env var (comma-separated list).
  *       Leave blank during initial setup to accept any device.
@@ -49,17 +49,16 @@ function createAdminClient() {
  */
 function isAllowedSN(sn: string): boolean {
   const allowed = process.env.ADMS_DEVICE_SN?.trim();
-  if (!allowed) return true; // no restriction configured
+  if (!allowed) return true;
   return allowed.split(",").map((s) => s.trim()).includes(sn);
 }
 
 /**
  * Convert a device timestamp ("YYYY-MM-DD HH:MM:SS") to a Postgres ISO string.
  *
- * The device receives UTC from Vercel's Date header but applies TimeZone=5.5
- * from our config, so it displays and sends IST timestamps. We store them
- * as-is (no offset conversion) — Postgres labels them +00 but the values are
- * IST, matching the MDB pipeline convention that formatTime() relies on.
+ * The device applies TimeZone=330 (IST offset) to the UTC clock from the server,
+ * so it sends IST timestamps. We store them as-is with +00:00 — Postgres labels
+ * them UTC but values are IST, matching the MDB pipeline convention.
  */
 function deviceTimeToISO(raw: string): string | null {
   if (!raw.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) return null;
@@ -126,7 +125,7 @@ async function parseBody(request: NextRequest): Promise<ParsedBody> {
 interface PunchRow {
   device_sn: string;
   user_id: number;
-  punch_time: string; // ISO UTC
+  punch_time: string; // ISO, stored as IST-labeled +00
   status: number;
   verify: number;
   work_code: string | null;
@@ -159,125 +158,6 @@ function parseLine(line: string, deviceSN: string): PunchRow | null {
 }
 
 // ---------------------------------------------------------------------------
-// Process punches → attendance
-// ---------------------------------------------------------------------------
-
-/**
- * For each unique (employee_id, date) in the incoming punches, fetch all
- * punches for that employee+date from adms_punches, compute in/out times,
- * then delete+insert in the attendance table.
- *
- * Errors here are logged but do NOT cause the route to return an error —
- * the raw punches are already saved; we never want the device to resend.
- */
-async function processIntoAttendance(
-  supabase: ReturnType<typeof createAdminClient>,
-  punches: PunchRow[]
-): Promise<void> {
-  // Collect unique (user_id, date) pairs from this batch
-  const keys = new Set<string>();
-  for (const p of punches) {
-    const date = p.punch_time.slice(0, 10); // UTC date YYYY-MM-DD
-    keys.add(`${p.user_id}:${date}`);
-  }
-
-  for (const key of keys) {
-    const [userIdStr, date] = key.split(":");
-    const employeeId = parseInt(userIdStr, 10);
-
-    try {
-      // 1. Fetch ALL punches for this employee+date (not just this batch)
-      const dayStart = `${date}T00:00:00.000Z`;
-      const dayEnd   = `${date}T23:59:59.999Z`;
-
-      const { data: dayPunches, error: fetchErr } = await supabase
-        .from("adms_punches")
-        .select("punch_time, status")
-        .eq("user_id", employeeId)
-        .gte("punch_time", dayStart)
-        .lte("punch_time", dayEnd)
-        .order("punch_time", { ascending: true });
-
-      if (fetchErr) {
-        console.error(`[adms] fetch punches for ${key}:`, fetchErr.message);
-        continue;
-      }
-      if (!dayPunches || dayPunches.length === 0) continue;
-
-      const inTime  = dayPunches[0].punch_time;
-      const outTime = dayPunches.length > 1
-        ? dayPunches[dayPunches.length - 1].punch_time
-        : null;
-
-      // Single punch heuristics for missed-punch flags
-      const singleStatus = dayPunches.length === 1 ? dayPunches[0].status : null;
-      const missedIn  = singleStatus === 1; // only saw check-out
-      const missedOut = singleStatus === 0; // only saw check-in
-
-      // Human-readable punch list: "09:02,18:45"
-      const punchRecords = dayPunches
-        .map((p) => p.punch_time.slice(11, 16))
-        .join(",");
-
-      // 2. Resolve employee by device PIN → employee_code.
-      //    The device enrolls users with their employee_code as the PIN,
-      //    so user_id in adms_punches = employee_code in the employees table.
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("employee_id, employee_name, employee_code")
-        .eq("employee_code", String(employeeId))
-        .single();
-
-      if (!emp) {
-        console.warn(`[adms] device PIN ${employeeId} not matched to any employee_code — punch saved, attendance skipped`);
-        continue;
-      }
-
-      const supabaseEmployeeId = emp.employee_id;
-
-      // 3. Delete any existing ADMS-sourced row for this employee+date
-      //    (leaves MDB-sourced rows untouched)
-      const { error: delErr } = await supabase
-        .from("attendance")
-        .delete()
-        .eq("employee_id", supabaseEmployeeId)
-        .eq("attendance_date", date)
-        .like("source_db", "adms:%");
-
-      if (delErr) {
-        console.error(`[adms] delete attendance for ${key}:`, delErr.message);
-        continue;
-      }
-
-      // 4. Insert processed attendance row
-      //    DB trigger will fill duration, late_by, early_by, overtime, shift_id
-      const { error: insErr } = await supabase.from("attendance").insert({
-        attendance_date:  date,
-        employee_id:      supabaseEmployeeId,
-        employee_name:    emp.employee_name ?? null,
-        employee_code:    emp.employee_code ?? null,
-        in_time:          inTime,
-        out_time:         outTime,
-        punch_records:    punchRecords,
-        missed_in_punch:  missedIn,
-        missed_out_punch: missedOut,
-        is_on_leave:      false,
-        present:          outTime ? 1 : null,
-        absent:           0,
-        source_db:        `adms:${punches[0].device_sn}`,
-        polled_at:        new Date().toISOString(),
-      });
-
-      if (insErr) {
-        console.error(`[adms] insert attendance for ${key}:`, insErr.message);
-      }
-    } catch (err) {
-      console.error(`[adms] unexpected error processing ${key}:`, err);
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Route handlers
 // ---------------------------------------------------------------------------
 
@@ -293,9 +173,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return error();
   }
 
-  // TimeZone=5.5 tells the device to apply IST (UTC+5:30) to the UTC clock
-  // it receives from the server's Date header. The device then displays IST
-  // and sends IST timestamps in ATTLOG — consistent with MDB convention.
+  // TimeZone=330 (minutes) = IST (UTC+5:30). The device applies this offset to
+  // the UTC clock it receives from the server's Date header, so it displays IST
+  // and sends IST timestamps in ATTLOG — consistent with the MDB pipeline convention.
   const config = [
     `GET OPTION FROM: ${sn}`,
     "ATTLOGStamp=9999",
@@ -319,8 +199,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 /**
  * POST /api/iclock/cdata?SN=XXX
- * Device pushes attendance logs here. Must always respond "OK" once the
- * raw punch is saved, regardless of downstream processing outcome.
+ * Device pushes attendance logs here. Saves raw punches to adms_punches;
+ * the DB trigger handles employee resolution and attendance upsert.
+ * Always responds "OK" once the raw punch is saved.
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const sn = request.nextUrl.searchParams.get("SN") ?? "unknown";
@@ -339,7 +220,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   if (lines.length === 0) return ok();
 
-  // Parse lines into punch rows
   // Drop punches older than ADMS_START_DATE (device flushes its full backlog on first connect)
   const startDate = process.env.ADMS_START_DATE?.trim();
 
@@ -355,7 +235,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const supabase = createAdminClient();
 
-  // Save raw punches — UNIQUE constraint handles duplicates silently
+  // Save raw punches — DB trigger fires on each new row to update attendance.
+  // UNIQUE constraint on (user_id, punch_time) silently drops duplicates.
   const { error: insertErr } = await supabase
     .from("adms_punches")
     .upsert(punches, {
@@ -364,16 +245,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
   if (insertErr) {
-    // Log but still return OK — the device should not keep resending.
-    // This is a genuine DB error (not a duplicate), so log it for investigation.
     console.error("[adms] failed to save punches:", insertErr.message);
-    return ok();
+  } else {
+    console.log(`[adms] saved ${punches.length} punch(es) from SN=${sn}`);
   }
-
-  console.log(`[adms] saved ${punches.length} punch(es) from SN=${sn}`);
-
-  // Process into attendance (best-effort — errors are logged, not thrown)
-  await processIntoAttendance(supabase, punches);
 
   return ok();
 }
