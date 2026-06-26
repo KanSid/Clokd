@@ -25,7 +25,7 @@ import pyodbc
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT 
+DATA_DIR = ROOT / "data_in"
 ENV_FILE = ROOT / ".env.local"
 
 BATCH = 500
