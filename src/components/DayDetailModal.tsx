@@ -33,10 +33,22 @@ export default function DayDetailModal({
   const { date, status, record, holiday, isLate, isOvertime, isEarlyLeave, isHalfDay, isSunday } = dayInfo;
   const rec = record;
 
-  // Store department Sunday shift is 11:00 – 18:00.
   const isStoreDept = departmentName?.toLowerCase() === "store";
-  const effectiveInTime = isSunday && isStoreDept ? "11:00:00" : employeeInTime;
-  const effectiveOutTime = isSunday && isStoreDept ? "18:00:00" : employeeOutTime;
+
+  // Store weekday: use the detected shift times; Store Sunday: fixed 11-18.
+  const STORE_SHIFT_TIMES: Record<number, { in: string; out: string; label: string }> = {
+    1: { in: "09:00:00", out: "18:00:00", label: "Shift 1 (9 – 6)" },
+    2: { in: "10:00:00", out: "19:00:00", label: "Shift 2 (10 – 7)" },
+    3: { in: "11:00:00", out: "20:00:00", label: "Shift 3 (11 – 8)" },
+  };
+  const detectedShift = rec?.shift_id ? STORE_SHIFT_TIMES[rec.shift_id] : null;
+
+  const effectiveInTime = (isSunday && isStoreDept)
+    ? "11:00:00"
+    : (detectedShift?.in ?? employeeInTime);
+  const effectiveOutTime = (isSunday && isStoreDept)
+    ? "18:00:00"
+    : (detectedShift?.out ?? employeeOutTime);
 
   const dateDisplay = date.toLocaleDateString("en-IN", {
     weekday: "long",
@@ -200,6 +212,12 @@ export default function DayDetailModal({
 
               {/* Additional Info */}
               <div className="space-y-2 text-sm">
+                {detectedShift && (
+                  <div className="flex justify-between rounded-lg bg-indigo-50 px-3 py-2">
+                    <span className="text-indigo-600">Shift</span>
+                    <span className="font-semibold text-indigo-900">{detectedShift.label}</span>
+                  </div>
+                )}
                 <div className="flex justify-between rounded-lg bg-slate-50 px-3 py-2">
                   <span className="text-slate-500">Status</span>
                   <span className="font-medium text-slate-900">{rec.status ?? "-"}</span>

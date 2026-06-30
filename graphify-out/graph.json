@@ -13,31 +13,15 @@
       "author": null,
       "contributor": null,
       "id": "next_env_types",
-      "community": 10
+      "community": 12
     },
     {
-      "label": "Security Headers Config",
+      "label": "next.config.ts",
       "file_type": "code",
       "source_file": "next.config.ts",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "next_config_security_headers",
-      "community": 2
-    },
-    {
-      "label": "Content Security Policy (CSP)",
-      "file_type": "code",
-      "source_file": "next.config.ts",
-      "source_location": "lines 17-30",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "next_config_csp",
-      "community": 2
+      "source_location": "L1",
+      "id": "next_config",
+      "community": 13
     },
     {
       "label": "poll_attendance.py",
@@ -163,7 +147,7 @@
       "label": "_coerce_dt()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L208",
+      "source_location": "L212",
       "id": "poll_attendance_coerce_dt",
       "community": 0
     },
@@ -171,7 +155,7 @@
       "label": "_coerce_date()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L218",
+      "source_location": "L222",
       "id": "poll_attendance_coerce_date",
       "community": 0
     },
@@ -179,7 +163,7 @@
       "label": "sync_attendance()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L230",
+      "source_location": "L234",
       "id": "poll_attendance_sync_attendance",
       "community": 0
     },
@@ -187,7 +171,7 @@
       "label": "sync_holidays()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L297",
+      "source_location": "L301",
       "id": "poll_attendance_sync_holidays",
       "community": 0
     },
@@ -195,7 +179,7 @@
       "label": "warn_incomplete_employees()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L314",
+      "source_location": "L318",
       "id": "poll_attendance_warn_incomplete_employees",
       "community": 0
     },
@@ -203,7 +187,7 @@
       "label": "_validate_date()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L345",
+      "source_location": "L349",
       "id": "poll_attendance_validate_date",
       "community": 0
     },
@@ -211,12 +195,12 @@
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L352",
+      "source_location": "L356",
       "id": "poll_attendance_main",
       "community": 0
     },
     {
-      "label": "Poll the latest eTimeTrackLite .mdb file in the repo root and sync to Supabase.",
+      "label": "POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn",
       "file_type": "rationale",
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L1",
@@ -251,9 +235,49 @@
       "label": "Flag active employees missing an emp_id or shift times. Such employees are     h",
       "file_type": "rationale",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L315",
-      "id": "poll_attendance_rationale_315",
+      "source_location": "L319",
+      "id": "poll_attendance_rationale_319",
       "community": 0
+    },
+    {
+      "label": "test_adms.py",
+      "file_type": "code",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L1",
+      "id": "test_adms",
+      "community": 8
+    },
+    {
+      "label": "load_env()",
+      "file_type": "code",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L40",
+      "id": "test_adms_load_env",
+      "community": 8
+    },
+    {
+      "label": "check()",
+      "file_type": "code",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L52",
+      "id": "test_adms_check",
+      "community": 8
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L65",
+      "id": "test_adms_main",
+      "community": 8
+    },
+    {
+      "label": "Simulate an ADMS fingerprint scanner pushing data to the local dev server.  Ru",
+      "file_type": "rationale",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L1",
+      "id": "test_adms_rationale_1",
+      "community": 8
     },
     {
       "label": "Middleware Auth & Role Guard",
@@ -309,7 +333,7 @@
       "source_file": "src\\app\\layout.tsx",
       "source_location": "L1",
       "id": "layout",
-      "community": 11
+      "community": 14
     },
     {
       "label": "Root Page (redirect to dashboard)",
@@ -321,7 +345,7 @@
       "author": null,
       "contributor": null,
       "id": "app_page_redirect",
-      "community": 12
+      "community": 15
     },
     {
       "label": "API Route: Admin Users (GET/DELETE)",
@@ -372,6 +396,86 @@
       "community": 2
     },
     {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\getrequest\\route.ts",
+      "source_location": "L1",
+      "id": "route",
+      "community": 4
+    },
+    {
+      "label": "ok()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L23",
+      "id": "route_ok",
+      "community": 4
+    },
+    {
+      "label": "error()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L30",
+      "id": "route_error",
+      "community": 4
+    },
+    {
+      "label": "createAdminClient()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L37",
+      "id": "route_createadminclient",
+      "community": 4
+    },
+    {
+      "label": "isAllowedSN()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\getrequest\\route.ts",
+      "source_location": "L13",
+      "id": "route_isallowedsn",
+      "community": 4
+    },
+    {
+      "label": "deviceTimeToISO()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L63",
+      "id": "route_devicetimetoiso",
+      "community": 4
+    },
+    {
+      "label": "parseBody()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L83",
+      "id": "route_parsebody",
+      "community": 4
+    },
+    {
+      "label": "parseLine()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L139",
+      "id": "route_parseline",
+      "community": 4
+    },
+    {
+      "label": "GET()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\getrequest\\route.ts",
+      "source_location": "L19",
+      "id": "route_get",
+      "community": 4
+    },
+    {
+      "label": "POST()",
+      "file_type": "code",
+      "source_file": "src\\app\\api\\iclock\\devicecmd\\route.ts",
+      "source_location": "L19",
+      "id": "route_post",
+      "community": 4
+    },
+    {
       "label": "Dashboard Layout (Sidebar wrapper)",
       "file_type": "code",
       "source_file": "src/app/dashboard/layout.tsx",
@@ -381,7 +485,7 @@
       "author": null,
       "contributor": null,
       "id": "dashboard_layout",
-      "community": 5
+      "community": 6
     },
     {
       "label": "Sidebar Component",
@@ -393,7 +497,7 @@
       "author": null,
       "contributor": null,
       "id": "sidebar_component",
-      "community": 5
+      "community": 6
     },
     {
       "label": "page.tsx",
@@ -461,7 +565,7 @@
       "author": null,
       "contributor": null,
       "id": "admin_page_activity",
-      "community": 6
+      "community": 7
     },
     {
       "label": "Admin Change Password",
@@ -473,7 +577,7 @@
       "author": null,
       "contributor": null,
       "id": "admin_page_change_password",
-      "community": 8
+      "community": 10
     },
     {
       "label": "nameOf()",
@@ -503,7 +607,7 @@
       "label": "openAddModal()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L414",
+      "source_location": "L458",
       "id": "page_openaddmodal",
       "community": 1
     },
@@ -511,7 +615,7 @@
       "label": "openEditModal()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L420",
+      "source_location": "L464",
       "id": "page_openeditmodal",
       "community": 1
     },
@@ -519,7 +623,7 @@
       "label": "handleSave()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L333",
+      "source_location": "L359",
       "id": "page_handlesave",
       "community": 1
     },
@@ -527,7 +631,7 @@
       "label": "handleDelete()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L382",
+      "source_location": "L426",
       "id": "page_handledelete",
       "community": 1
     },
@@ -557,7 +661,7 @@
       "author": null,
       "contributor": null,
       "id": "edit_logs_page",
-      "community": 6
+      "community": 7
     },
     {
       "label": "renderJsonDiff (field-level diff viewer)",
@@ -569,7 +673,7 @@
       "author": null,
       "contributor": null,
       "id": "edit_logs_json_diff",
-      "community": 6
+      "community": 7
     },
     {
       "label": "Edit Logs Pagination (offset-based)",
@@ -581,7 +685,7 @@
       "author": null,
       "contributor": null,
       "id": "edit_logs_pagination",
-      "community": 6
+      "community": 7
     },
     {
       "label": "Supabase Table: edit_logs",
@@ -593,29 +697,21 @@
       "author": null,
       "contributor": null,
       "id": "supabase_table_edit_logs",
-      "community": 6
+      "community": 7
     },
     {
-      "label": "EditModal()",
+      "label": "handleSubmit()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L22",
-      "id": "page_editmodal",
-      "community": 1
-    },
-    {
-      "label": "ConfirmDialog()",
-      "file_type": "code",
-      "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L207",
-      "id": "page_confirmdialog",
+      "source_location": "L63",
+      "id": "page_handlesubmit",
       "community": 1
     },
     {
       "label": "fetchEmployees()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L261",
+      "source_location": "L287",
       "id": "page_fetchemployees",
       "community": 1
     },
@@ -623,7 +719,7 @@
       "label": "fetchDepartments()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L275",
+      "source_location": "L301",
       "id": "page_fetchdepartments",
       "community": 1
     },
@@ -631,7 +727,7 @@
       "label": "openDeleteConfirm()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L426",
+      "source_location": "L470",
       "id": "page_opendeleteconfirm",
       "community": 1
     },
@@ -677,7 +773,7 @@
       "author": null,
       "contributor": null,
       "id": "holidays_page",
-      "community": 7
+      "community": 9
     },
     {
       "label": "Holiday Edit Log writes",
@@ -689,7 +785,7 @@
       "author": null,
       "contributor": null,
       "id": "holidays_edit_log",
-      "community": 6
+      "community": 7
     },
     {
       "label": "Supabase Table: holidays",
@@ -701,7 +797,7 @@
       "author": null,
       "contributor": null,
       "id": "supabase_table_holidays",
-      "community": 7
+      "community": 9
     },
     {
       "label": "Profile Page (change password)",
@@ -713,7 +809,7 @@
       "author": null,
       "contributor": null,
       "id": "profile_page",
-      "community": 8
+      "community": 10
     },
     {
       "label": "changeMonth()",
@@ -769,7 +865,7 @@
       "source_file": "src\\components\\AttendanceCalendar.tsx",
       "source_location": "L1",
       "id": "attendancecalendar",
-      "community": 4
+      "community": 5
     },
     {
       "label": "formatClockBadge()",
@@ -777,7 +873,7 @@
       "source_file": "src\\components\\AttendanceCalendar.tsx",
       "source_location": "L23",
       "id": "attendancecalendar_formatclockbadge",
-      "community": 4
+      "community": 5
     },
     {
       "label": "getGradientStyle()",
@@ -785,7 +881,7 @@
       "source_file": "src\\components\\AttendanceCalendar.tsx",
       "source_location": "L32",
       "id": "attendancecalendar_getgradientstyle",
-      "community": 4
+      "community": 5
     },
     {
       "label": "getStatusStyle()",
@@ -793,7 +889,7 @@
       "source_file": "src\\components\\AttendanceCalendar.tsx",
       "source_location": "L155",
       "id": "attendancecalendar_getstatusstyle",
-      "community": 4
+      "community": 5
     },
     {
       "label": "getStatusLabel()",
@@ -801,7 +897,7 @@
       "source_file": "src\\components\\AttendanceCalendar.tsx",
       "source_location": "L174",
       "id": "attendancecalendar_getstatuslabel",
-      "community": 4
+      "community": 5
     },
     {
       "label": "handlePrev()",
@@ -809,7 +905,7 @@
       "source_file": "src\\components\\AttendanceCalendar.tsx",
       "source_location": "L194",
       "id": "attendancecalendar_handleprev",
-      "community": 4
+      "community": 5
     },
     {
       "label": "handleNext()",
@@ -817,7 +913,7 @@
       "source_file": "src\\components\\AttendanceCalendar.tsx",
       "source_location": "L200",
       "id": "attendancecalendar_handlenext",
-      "community": 4
+      "community": 5
     },
     {
       "label": "ConfirmDialog Component",
@@ -829,7 +925,7 @@
       "author": null,
       "contributor": null,
       "id": "confirmdialog_component",
-      "community": 9
+      "community": 11
     },
     {
       "label": "DashboardHeader Component",
@@ -841,7 +937,7 @@
       "author": null,
       "contributor": null,
       "id": "dashboardheader_component",
-      "community": 5
+      "community": 6
     },
     {
       "label": "DataTable Component",
@@ -853,7 +949,7 @@
       "author": null,
       "contributor": null,
       "id": "datatable_component",
-      "community": 13
+      "community": 16
     },
     {
       "label": "DayDetailModal.tsx",
@@ -861,7 +957,7 @@
       "source_file": "src\\components\\DayDetailModal.tsx",
       "source_location": "L1",
       "id": "daydetailmodal",
-      "community": 4
+      "community": 5
     },
     {
       "label": "getStatusBadge()",
@@ -869,7 +965,7 @@
       "source_file": "src\\components\\DayDetailModal.tsx",
       "source_location": "L53",
       "id": "daydetailmodal_getstatusbadge",
-      "community": 4
+      "community": 5
     },
     {
       "label": "EditModal Component",
@@ -881,7 +977,7 @@
       "author": null,
       "contributor": null,
       "id": "editmodal_component",
-      "community": 9
+      "community": 11
     },
     {
       "label": "Role-Based Access Control (admin/viewer)",
@@ -893,7 +989,7 @@
       "author": null,
       "contributor": null,
       "id": "rbac_admin_viewer",
-      "community": 5
+      "community": 6
     },
     {
       "label": "StatCard Component",
@@ -905,7 +1001,7 @@
       "author": null,
       "contributor": null,
       "id": "statcard_component",
-      "community": 14
+      "community": 17
     },
     {
       "label": "types.ts",
@@ -913,7 +1009,7 @@
       "source_file": "src\\lib\\types.ts",
       "source_location": "L1",
       "id": "types",
-      "community": 4
+      "community": 5
     },
     {
       "label": "utils.ts",
@@ -1021,7 +1117,7 @@
       "author": null,
       "contributor": null,
       "id": "supabaseclient_createclient",
-      "community": 5
+      "community": 6
     },
     {
       "label": "Supabase Browser Singleton",
@@ -1033,7 +1129,7 @@
       "author": null,
       "contributor": null,
       "id": "supabaseclient_supabase",
-      "community": 5
+      "community": 6
     },
     {
       "label": "Supabase Server Client Factory",
@@ -1045,34 +1141,10 @@
       "author": null,
       "contributor": null,
       "id": "supabaseserver_createclient",
-      "community": 5
+      "community": 6
     }
   ],
   "links": [
-    {
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "next.config.ts",
-      "source_location": "lines 17-30",
-      "weight": 1.0,
-      "_src": "next_config_security_headers",
-      "_tgt": "next_config_csp",
-      "source": "next_config_security_headers",
-      "target": "next_config_csp"
-    },
-    {
-      "relation": "conceptually_related_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.6,
-      "source_file": "next.config.ts",
-      "source_location": null,
-      "weight": 0.6,
-      "_src": "next_config_csp",
-      "_tgt": "middleware_supabase_ssr",
-      "source": "next_config_csp",
-      "target": "middleware_supabase_ssr"
-    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -1173,7 +1245,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L208",
+      "source_location": "L212",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_coerce_dt",
@@ -1185,7 +1257,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L218",
+      "source_location": "L222",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_coerce_date",
@@ -1197,7 +1269,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L230",
+      "source_location": "L234",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_sync_attendance",
@@ -1209,7 +1281,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L297",
+      "source_location": "L301",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_sync_holidays",
@@ -1221,7 +1293,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L314",
+      "source_location": "L318",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_warn_incomplete_employees",
@@ -1233,7 +1305,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L345",
+      "source_location": "L349",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_validate_date",
@@ -1245,7 +1317,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L352",
+      "source_location": "L356",
       "weight": 1.0,
       "_src": "poll_attendance",
       "_tgt": "poll_attendance_main",
@@ -1269,7 +1341,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L364",
+      "source_location": "L368",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_load_env",
@@ -1281,7 +1353,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L366",
+      "source_location": "L370",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_latest_mdb",
@@ -1293,7 +1365,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L373",
+      "source_location": "L377",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_connect_mdb",
@@ -1329,7 +1401,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L191",
+      "source_location": "L195",
       "weight": 1.0,
       "_src": "poll_attendance_sync_employees",
       "_tgt": "poll_attendance_rows_to_dicts",
@@ -1341,7 +1413,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L254",
+      "source_location": "L258",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_rows_to_dicts",
@@ -1353,7 +1425,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L304",
+      "source_location": "L308",
       "weight": 1.0,
       "_src": "poll_attendance_sync_holidays",
       "_tgt": "poll_attendance_rows_to_dicts",
@@ -1437,7 +1509,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L365",
+      "source_location": "L369",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_supabase",
@@ -1461,7 +1533,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L311",
+      "source_location": "L315",
       "weight": 1.0,
       "_src": "poll_attendance_sync_holidays",
       "_tgt": "poll_attendance_supabase_upsert",
@@ -1473,7 +1545,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L258",
+      "source_location": "L262",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_supabase_delete_range",
@@ -1485,7 +1557,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L205",
+      "source_location": "L209",
       "weight": 1.0,
       "_src": "poll_attendance_sync_employees",
       "_tgt": "poll_attendance_supabase_insert",
@@ -1497,7 +1569,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L294",
+      "source_location": "L298",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_supabase_insert",
@@ -1545,7 +1617,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L318",
+      "source_location": "L322",
       "weight": 1.0,
       "_src": "poll_attendance_warn_incomplete_employees",
       "_tgt": "poll_attendance_supabase_get_rows",
@@ -1569,7 +1641,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L377",
+      "source_location": "L381",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_sync_departments",
@@ -1581,7 +1653,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L379",
+      "source_location": "L383",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_sync_employees",
@@ -1605,7 +1677,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L274",
+      "source_location": "L278",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_coerce_dt",
@@ -1617,7 +1689,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L265",
+      "source_location": "L269",
       "weight": 1.0,
       "_src": "poll_attendance_sync_attendance",
       "_tgt": "poll_attendance_coerce_date",
@@ -1629,7 +1701,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L305",
+      "source_location": "L309",
       "weight": 1.0,
       "_src": "poll_attendance_sync_holidays",
       "_tgt": "poll_attendance_coerce_date",
@@ -1641,7 +1713,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L381",
+      "source_location": "L385",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_sync_attendance",
@@ -1653,7 +1725,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L384",
+      "source_location": "L388",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_sync_holidays",
@@ -1665,7 +1737,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L389",
+      "source_location": "L393",
       "weight": 1.0,
       "_src": "poll_attendance_main",
       "_tgt": "poll_attendance_warn_incomplete_employees",
@@ -1677,12 +1749,84 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "scripts\\poll_attendance.py",
-      "source_location": "L315",
+      "source_location": "L319",
       "weight": 1.0,
-      "_src": "poll_attendance_rationale_315",
+      "_src": "poll_attendance_rationale_319",
       "_tgt": "poll_attendance_warn_incomplete_employees",
       "source": "poll_attendance_warn_incomplete_employees",
-      "target": "poll_attendance_rationale_315",
+      "target": "poll_attendance_rationale_319",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_src": "test_adms",
+      "_tgt": "test_adms_load_env",
+      "source": "test_adms",
+      "target": "test_adms_load_env",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_src": "test_adms",
+      "_tgt": "test_adms_check",
+      "source": "test_adms",
+      "target": "test_adms_check",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_src": "test_adms",
+      "_tgt": "test_adms_main",
+      "source": "test_adms",
+      "target": "test_adms_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_src": "test_adms_rationale_1",
+      "_tgt": "test_adms",
+      "source": "test_adms",
+      "target": "test_adms_rationale_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_src": "test_adms_main",
+      "_tgt": "test_adms_load_env",
+      "source": "test_adms_load_env",
+      "target": "test_adms_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts\\test_adms.py",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_src": "test_adms_main",
+      "_tgt": "test_adms_check",
+      "source": "test_adms_check",
+      "target": "test_adms_main",
       "confidence_score": 1.0
     },
     {
@@ -1816,6 +1960,246 @@
       "_tgt": "lib_supabase_server",
       "source": "lib_supabase_server",
       "target": "api_auth_callback_route"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_ok",
+      "source": "route",
+      "target": "route_ok",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_error",
+      "source": "route",
+      "target": "route_error",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_createadminclient",
+      "source": "route",
+      "target": "route_createadminclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\getrequest\\route.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_isallowedsn",
+      "source": "route",
+      "target": "route_isallowedsn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L63",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_devicetimetoiso",
+      "source": "route",
+      "target": "route_devicetimetoiso",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L83",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_parsebody",
+      "source": "route",
+      "target": "route_parsebody",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L139",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_parseline",
+      "source": "route",
+      "target": "route_parseline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\getrequest\\route.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_get",
+      "source": "route",
+      "target": "route_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\devicecmd\\route.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "route",
+      "_tgt": "route_post",
+      "source": "route",
+      "target": "route_post",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L218",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_ok",
+      "source": "route_ok",
+      "target": "route_post",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L173",
+      "weight": 1.0,
+      "_src": "route_get",
+      "_tgt": "route_error",
+      "source": "route_error",
+      "target": "route_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L211",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_error",
+      "source": "route_error",
+      "target": "route_post",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L236",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_createadminclient",
+      "source": "route_createadminclient",
+      "target": "route_post",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\getrequest\\route.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "route_get",
+      "_tgt": "route_isallowedsn",
+      "source": "route_isallowedsn",
+      "target": "route_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\devicecmd\\route.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_isallowedsn",
+      "source": "route_isallowedsn",
+      "target": "route_post",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L146",
+      "weight": 1.0,
+      "_src": "route_parseline",
+      "_tgt": "route_devicetimetoiso",
+      "source": "route_devicetimetoiso",
+      "target": "route_parseline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L85",
+      "weight": 1.0,
+      "_src": "route_parsebody",
+      "_tgt": "route_get",
+      "source": "route_parsebody",
+      "target": "route_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L214",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_parsebody",
+      "source": "route_parsebody",
+      "target": "route_post",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L228",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_parseline",
+      "source": "route_parseline",
+      "target": "route_post",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\api\\iclock\\cdata\\route.ts",
+      "source_location": "L207",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "route_post",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -1965,7 +2349,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L414",
+      "source_location": "L458",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_openaddmodal",
@@ -1977,7 +2361,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L420",
+      "source_location": "L464",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_openeditmodal",
@@ -1989,7 +2373,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L333",
+      "source_location": "L359",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_handlesave",
@@ -2001,7 +2385,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L382",
+      "source_location": "L426",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_handledelete",
@@ -2037,31 +2421,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L22",
+      "source_location": "L63",
       "weight": 1.0,
       "_src": "page",
-      "_tgt": "page_editmodal",
+      "_tgt": "page_handlesubmit",
       "source": "page",
-      "target": "page_editmodal",
+      "target": "page_handlesubmit",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L207",
-      "weight": 1.0,
-      "_src": "page",
-      "_tgt": "page_confirmdialog",
-      "source": "page",
-      "target": "page_confirmdialog",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L261",
+      "source_location": "L287",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_fetchemployees",
@@ -2073,7 +2445,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L275",
+      "source_location": "L301",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_fetchdepartments",
@@ -2085,7 +2457,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L426",
+      "source_location": "L470",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_opendeleteconfirm",
@@ -2217,7 +2589,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L379",
+      "source_location": "L423",
       "weight": 1.0,
       "_src": "page_handlesave",
       "_tgt": "page_fetchemployees",
@@ -2229,7 +2601,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L411",
+      "source_location": "L455",
       "weight": 1.0,
       "_src": "page_handledelete",
       "_tgt": "page_fetchemployees",

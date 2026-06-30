@@ -186,10 +186,14 @@ def sync_employees(cur: pyodbc.Cursor, sb: Supabase) -> int:
         "FROM Employees WHERE RecordStatus IS NULL OR RecordStatus <> 0"
     )
     existing = sb.get_id_set("employees", "employee_id")
+    # employee_code is now the unique business key (UNIQUE constraint in Supabase).
+    # Skip codes that already exist so an MDB import can't crash the poll on a code
+    # already registered via the dashboard under a different (legacy) employee_id.
+    existing_codes = sb.get_id_set("employees", "employee_code")
     now_iso = datetime.now(timezone.utc).isoformat()
     rows = []
     for r in rows_to_dicts(cur):
-        if r["EmployeeId"] in existing:
+        if r["EmployeeId"] in existing or r["EmployeeCode"] in existing_codes:
             continue  # already in Supabase → leave it untouched
         rows.append(
             {

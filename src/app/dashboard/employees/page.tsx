@@ -29,15 +29,18 @@ function EditModal({
 }: EditModalProps) {
   const [form, setForm] = useState<Partial<Employee>>({});
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setError(null);
     if (employee) {
       setForm({
         employee_name: employee.employee_name ?? "",
         employee_code: employee.employee_code ?? "",
+        emp_id: employee.emp_id ?? "",
         department_id: employee.department_id ?? undefined,
         designation: employee.designation ?? "",
-        status: employee.status ?? "Active",
+        status: employee.status ?? "Working",
         in_time: employee.in_time ?? "",
         out_time: employee.out_time ?? "",
       });
@@ -45,9 +48,10 @@ function EditModal({
       setForm({
         employee_name: "",
         employee_code: "",
+        emp_id: "",
         department_id: undefined,
         designation: "",
-        status: "Active",
+        status: "Working",
         in_time: "",
         out_time: "",
       });
@@ -59,11 +63,12 @@ function EditModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setError(null);
     try {
       await onSave(form);
       onClose();
     } catch (err) {
-      console.error("Save error:", err);
+      setError(err instanceof Error ? err.message : "Failed to save employee.");
     } finally {
       setSaving(false);
     }
@@ -106,9 +111,25 @@ function EditModal({
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
+              Emp ID
+            </label>
+            <input
+              type="text"
+              required
+              value={form.emp_id ?? ""}
+              onChange={(e) => setForm({ ...form, emp_id: e.target.value })}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-gray-400">
+              HR/report code (e.g. HK03). Employees without it are hidden from reports.
+            </p>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
               Department
             </label>
             <select
+              required
               value={form.department_id ?? ""}
               onChange={(e) =>
                 setForm({
@@ -150,8 +171,8 @@ function EditModal({
               onChange={(e) => setForm({ ...form, status: e.target.value })}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
             >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+              <option value="Working">Working</option>
+              <option value="Resigned">Resigned</option>
             </select>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -182,6 +203,11 @@ function EditModal({
               />
             </div>
           </div>
+          {error && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+              {error}
+            </p>
+          )}
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
@@ -338,7 +364,16 @@ export default function EmployeesPage() {
         .select()
         .single();
 
-      if (!error && inserted) {
+      if (error) {
+        if (error.code === "23505") {
+          throw new Error(
+            `Employee code "${data.employee_code}" already exists. Use a unique code.`
+          );
+        }
+        throw new Error(error.message);
+      }
+
+      if (inserted) {
         const { data: { user } } = await supabase.auth.getUser();
         await supabase.from("edit_logs").insert({
           edited_by: user?.id,
@@ -363,7 +398,16 @@ export default function EmployeesPage() {
         .update(data)
         .eq("employee_id", editingEmployee.employee_id);
 
-      if (!error) {
+      if (error) {
+        if (error.code === "23505") {
+          throw new Error(
+            `Employee code "${data.employee_code}" already exists. Use a unique code.`
+          );
+        }
+        throw new Error(error.message);
+      }
+
+      {
         const { data: { user } } = await supabase.auth.getUser();
         await supabase.from("edit_logs").insert({
           edited_by: user?.id,

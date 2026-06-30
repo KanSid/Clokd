@@ -300,6 +300,12 @@ export default function AttendanceCalendar({
                   </div>
                 )}
 
+                {info.record?.shift_id && !info.holiday && (
+                  <span className="absolute bottom-0.5 left-0.5 text-[7px] font-bold leading-none opacity-50">
+                    S{info.record.shift_id}
+                  </span>
+                )}
+
                 {info.holiday && (
                   <span className="absolute bottom-0.5 left-0.5 right-0.5 truncate text-center text-[7px] font-medium leading-none opacity-70">
                     {info.holiday.name}
