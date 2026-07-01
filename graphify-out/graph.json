@@ -4,16 +4,12 @@
   "graph": {},
   "nodes": [
     {
-      "label": "Next.js Type References",
+      "label": "next-env.d.ts",
       "file_type": "code",
       "source_file": "next-env.d.ts",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "next_env_types",
-      "community": 12
+      "source_location": "L1",
+      "id": "next_env_d",
+      "community": 14
     },
     {
       "label": "next.config.ts",
@@ -21,7 +17,7 @@
       "source_file": "next.config.ts",
       "source_location": "L1",
       "id": "next_config",
-      "community": 13
+      "community": 15
     },
     {
       "label": "poll_attendance.py",
@@ -29,7 +25,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L1",
       "id": "poll_attendance",
-      "community": 0
+      "community": 1
     },
     {
       "label": "load_env()",
@@ -37,7 +33,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L35",
       "id": "poll_attendance_load_env",
-      "community": 0
+      "community": 1
     },
     {
       "label": "latest_mdb()",
@@ -45,7 +41,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L52",
       "id": "poll_attendance_latest_mdb",
-      "community": 0
+      "community": 1
     },
     {
       "label": "connect_mdb()",
@@ -53,7 +49,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L62",
       "id": "poll_attendance_connect_mdb",
-      "community": 0
+      "community": 1
     },
     {
       "label": "to_jsonable()",
@@ -61,7 +57,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L68",
       "id": "poll_attendance_to_jsonable",
-      "community": 0
+      "community": 1
     },
     {
       "label": "rows_to_dicts()",
@@ -69,7 +65,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L82",
       "id": "poll_attendance_rows_to_dicts",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Supabase",
@@ -77,7 +73,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L87",
       "id": "poll_attendance_supabase",
-      "community": 0
+      "community": 1
     },
     {
       "label": ".__init__()",
@@ -85,7 +81,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L88",
       "id": "poll_attendance_supabase_init",
-      "community": 0
+      "community": 1
     },
     {
       "label": ".upsert()",
@@ -93,7 +89,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L96",
       "id": "poll_attendance_supabase_upsert",
-      "community": 0
+      "community": 1
     },
     {
       "label": ".delete_range()",
@@ -101,7 +97,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L110",
       "id": "poll_attendance_supabase_delete_range",
-      "community": 0
+      "community": 1
     },
     {
       "label": ".insert()",
@@ -109,7 +105,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L117",
       "id": "poll_attendance_supabase_insert",
-      "community": 0
+      "community": 1
     },
     {
       "label": ".get_id_set()",
@@ -117,7 +113,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L131",
       "id": "poll_attendance_supabase_get_id_set",
-      "community": 0
+      "community": 1
     },
     {
       "label": ".get_rows()",
@@ -125,7 +121,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L139",
       "id": "poll_attendance_supabase_get_rows",
-      "community": 0
+      "community": 1
     },
     {
       "label": "sync_departments()",
@@ -133,7 +129,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L163",
       "id": "poll_attendance_sync_departments",
-      "community": 0
+      "community": 1
     },
     {
       "label": "sync_employees()",
@@ -141,7 +137,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L181",
       "id": "poll_attendance_sync_employees",
-      "community": 0
+      "community": 1
     },
     {
       "label": "_coerce_dt()",
@@ -149,7 +145,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L212",
       "id": "poll_attendance_coerce_dt",
-      "community": 0
+      "community": 1
     },
     {
       "label": "_coerce_date()",
@@ -157,7 +153,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L222",
       "id": "poll_attendance_coerce_date",
-      "community": 0
+      "community": 1
     },
     {
       "label": "sync_attendance()",
@@ -165,7 +161,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L234",
       "id": "poll_attendance_sync_attendance",
-      "community": 0
+      "community": 1
     },
     {
       "label": "sync_holidays()",
@@ -173,7 +169,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L301",
       "id": "poll_attendance_sync_holidays",
-      "community": 0
+      "community": 1
     },
     {
       "label": "warn_incomplete_employees()",
@@ -181,7 +177,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L318",
       "id": "poll_attendance_warn_incomplete_employees",
-      "community": 0
+      "community": 1
     },
     {
       "label": "_validate_date()",
@@ -189,7 +185,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L349",
       "id": "poll_attendance_validate_date",
-      "community": 0
+      "community": 1
     },
     {
       "label": "main()",
@@ -197,7 +193,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L356",
       "id": "poll_attendance_main",
-      "community": 0
+      "community": 1
     },
     {
       "label": "POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn",
@@ -205,7 +201,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L1",
       "id": "poll_attendance_rationale_1",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Return the set of existing values for `column` (paged).",
@@ -213,7 +209,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L132",
       "id": "poll_attendance_rationale_132",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Return rows for `table` with the given select columns + optional filter (paged).",
@@ -221,7 +217,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L140",
       "id": "poll_attendance_rationale_140",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Insert NEW employees only. Existing employees are fully owned by Supabase \u2014",
@@ -229,7 +225,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L182",
       "id": "poll_attendance_rationale_182",
-      "community": 0
+      "community": 1
     },
     {
       "label": "Flag active employees missing an emp_id or shift times. Such employees are     h",
@@ -237,7 +233,7 @@
       "source_file": "scripts\\poll_attendance.py",
       "source_location": "L319",
       "id": "poll_attendance_rationale_319",
-      "community": 0
+      "community": 1
     },
     {
       "label": "test_adms.py",
@@ -245,7 +241,7 @@
       "source_file": "scripts\\test_adms.py",
       "source_location": "L1",
       "id": "test_adms",
-      "community": 8
+      "community": 7
     },
     {
       "label": "load_env()",
@@ -253,7 +249,7 @@
       "source_file": "scripts\\test_adms.py",
       "source_location": "L40",
       "id": "test_adms_load_env",
-      "community": 8
+      "community": 7
     },
     {
       "label": "check()",
@@ -261,7 +257,7 @@
       "source_file": "scripts\\test_adms.py",
       "source_location": "L52",
       "id": "test_adms_check",
-      "community": 8
+      "community": 7
     },
     {
       "label": "main()",
@@ -269,7 +265,7 @@
       "source_file": "scripts\\test_adms.py",
       "source_location": "L65",
       "id": "test_adms_main",
-      "community": 8
+      "community": 7
     },
     {
       "label": "Simulate an ADMS fingerprint scanner pushing data to the local dev server.  Ru",
@@ -277,7 +273,7 @@
       "source_file": "scripts\\test_adms.py",
       "source_location": "L1",
       "id": "test_adms_rationale_1",
-      "community": 8
+      "community": 7
     },
     {
       "label": "Middleware Auth & Role Guard",
@@ -333,7 +329,7 @@
       "source_file": "src\\app\\layout.tsx",
       "source_location": "L1",
       "id": "layout",
-      "community": 14
+      "community": 16
     },
     {
       "label": "Root Page (redirect to dashboard)",
@@ -345,7 +341,7 @@
       "author": null,
       "contributor": null,
       "id": "app_page_redirect",
-      "community": 15
+      "community": 17
     },
     {
       "label": "API Route: Admin Users (GET/DELETE)",
@@ -485,7 +481,7 @@
       "author": null,
       "contributor": null,
       "id": "dashboard_layout",
-      "community": 6
+      "community": 10
     },
     {
       "label": "Sidebar Component",
@@ -497,15 +493,15 @@
       "author": null,
       "contributor": null,
       "id": "sidebar_component",
-      "community": 6
+      "community": 10
     },
     {
       "label": "page.tsx",
       "file_type": "code",
-      "source_file": "src\\app\\dashboard\\reports\\page.tsx",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
       "source_location": "L1",
       "id": "page",
-      "community": 1
+      "community": 0
     },
     {
       "label": "StatCard()",
@@ -513,7 +509,7 @@
       "source_file": "src\\app\\dashboard\\page.tsx",
       "source_location": "L28",
       "id": "page_statcard",
-      "community": 1
+      "community": 0
     },
     {
       "label": "SkeletonCard()",
@@ -521,7 +517,7 @@
       "source_file": "src\\app\\dashboard\\page.tsx",
       "source_location": "L42",
       "id": "page_skeletoncard",
-      "community": 1
+      "community": 0
     },
     {
       "label": "SkeletonChart()",
@@ -529,7 +525,7 @@
       "source_file": "src\\app\\dashboard\\page.tsx",
       "source_location": "L56",
       "id": "page_skeletonchart",
-      "community": 1
+      "community": 0
     },
     {
       "label": "Admin Panel Page",
@@ -565,7 +561,7 @@
       "author": null,
       "contributor": null,
       "id": "admin_page_activity",
-      "community": 7
+      "community": 6
     },
     {
       "label": "Admin Change Password",
@@ -577,31 +573,71 @@
       "author": null,
       "contributor": null,
       "id": "admin_page_change_password",
-      "community": 10
+      "community": 12
     },
     {
       "label": "nameOf()",
       "file_type": "code",
-      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
-      "source_location": "L89",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L105",
       "id": "page_nameof",
-      "community": 1
+      "community": 0
     },
     {
       "label": "codeOf()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
-      "source_location": "L91",
+      "source_location": "L93",
       "id": "page_codeof",
-      "community": 1
+      "community": 0
+    },
+    {
+      "label": "deptNameById()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L91",
+      "id": "page_deptnamebyid",
+      "community": 0
+    },
+    {
+      "label": "deptOf()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
+      "source_location": "L99",
+      "id": "page_deptof",
+      "community": 0
+    },
+    {
+      "label": "designationOf()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
+      "source_location": "L101",
+      "id": "page_designationof",
+      "community": 0
+    },
+    {
+      "label": "empIdOf()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L107",
+      "id": "page_empidof",
+      "community": 0
+    },
+    {
+      "label": "cmpBlankLast()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
+      "source_location": "L107",
+      "id": "page_cmpblanklast",
+      "community": 0
     },
     {
       "label": "changeDate()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
-      "source_location": "L112",
+      "source_location": "L147",
       "id": "page_changedate",
-      "community": 1
+      "community": 0
     },
     {
       "label": "openAddModal()",
@@ -609,7 +645,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L458",
       "id": "page_openaddmodal",
-      "community": 1
+      "community": 0
     },
     {
       "label": "openEditModal()",
@@ -617,23 +653,23 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L464",
       "id": "page_openeditmodal",
-      "community": 1
+      "community": 0
     },
     {
       "label": "handleSave()",
       "file_type": "code",
-      "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L359",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L109",
       "id": "page_handlesave",
-      "community": 1
+      "community": 0
     },
     {
       "label": "handleDelete()",
       "file_type": "code",
-      "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L426",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L214",
       "id": "page_handledelete",
-      "community": 1
+      "community": 0
     },
     {
       "label": "openEdit()",
@@ -641,7 +677,7 @@
       "source_file": "src\\app\\dashboard\\departments\\page.tsx",
       "source_location": "L239",
       "id": "page_openedit",
-      "community": 1
+      "community": 0
     },
     {
       "label": "openAdd()",
@@ -649,7 +685,7 @@
       "source_file": "src\\app\\dashboard\\departments\\page.tsx",
       "source_location": "L248",
       "id": "page_openadd",
-      "community": 1
+      "community": 0
     },
     {
       "label": "Edit Logs Page (Audit Trail)",
@@ -661,7 +697,7 @@
       "author": null,
       "contributor": null,
       "id": "edit_logs_page",
-      "community": 7
+      "community": 6
     },
     {
       "label": "renderJsonDiff (field-level diff viewer)",
@@ -673,7 +709,7 @@
       "author": null,
       "contributor": null,
       "id": "edit_logs_json_diff",
-      "community": 7
+      "community": 6
     },
     {
       "label": "Edit Logs Pagination (offset-based)",
@@ -685,7 +721,7 @@
       "author": null,
       "contributor": null,
       "id": "edit_logs_pagination",
-      "community": 7
+      "community": 6
     },
     {
       "label": "Supabase Table: edit_logs",
@@ -697,7 +733,7 @@
       "author": null,
       "contributor": null,
       "id": "supabase_table_edit_logs",
-      "community": 7
+      "community": 6
     },
     {
       "label": "handleSubmit()",
@@ -705,7 +741,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L63",
       "id": "page_handlesubmit",
-      "community": 1
+      "community": 0
     },
     {
       "label": "fetchEmployees()",
@@ -713,7 +749,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L287",
       "id": "page_fetchemployees",
-      "community": 1
+      "community": 0
     },
     {
       "label": "fetchDepartments()",
@@ -721,7 +757,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L301",
       "id": "page_fetchdepartments",
-      "community": 1
+      "community": 0
     },
     {
       "label": "openDeleteConfirm()",
@@ -729,7 +765,7 @@
       "source_file": "src\\app\\dashboard\\employees\\page.tsx",
       "source_location": "L470",
       "id": "page_opendeleteconfirm",
-      "community": 1
+      "community": 0
     },
     {
       "label": "statusCodeToLabel()",
@@ -737,7 +773,7 @@
       "source_file": "src\\app\\dashboard\\employees\\[id]\\page.tsx",
       "source_location": "L43",
       "id": "page_statuscodetolabel",
-      "community": 1
+      "community": 0
     },
     {
       "label": "isHalfDayLeave()",
@@ -745,7 +781,7 @@
       "source_file": "src\\app\\dashboard\\employees\\[id]\\page.tsx",
       "source_location": "L50",
       "id": "page_ishalfdayleave",
-      "community": 1
+      "community": 0
     },
     {
       "label": "labelToCode()",
@@ -753,7 +789,7 @@
       "source_file": "src\\app\\dashboard\\employees\\[id]\\page.tsx",
       "source_location": "L54",
       "id": "page_labeltocode",
-      "community": 1
+      "community": 0
     },
     {
       "label": "EmployeeDetailPage()",
@@ -761,7 +797,7 @@
       "source_file": "src\\app\\dashboard\\employees\\[id]\\page.tsx",
       "source_location": "L58",
       "id": "page_employeedetailpage",
-      "community": 1
+      "community": 0
     },
     {
       "label": "Holidays Page (CRUD + year overview)",
@@ -773,7 +809,7 @@
       "author": null,
       "contributor": null,
       "id": "holidays_page",
-      "community": 9
+      "community": 11
     },
     {
       "label": "Holiday Edit Log writes",
@@ -785,7 +821,7 @@
       "author": null,
       "contributor": null,
       "id": "holidays_edit_log",
-      "community": 7
+      "community": 6
     },
     {
       "label": "Supabase Table: holidays",
@@ -797,7 +833,7 @@
       "author": null,
       "contributor": null,
       "id": "supabase_table_holidays",
-      "community": 9
+      "community": 11
     },
     {
       "label": "Profile Page (change password)",
@@ -809,7 +845,7 @@
       "author": null,
       "contributor": null,
       "id": "profile_page",
-      "community": 10
+      "community": 12
     },
     {
       "label": "changeMonth()",
@@ -817,7 +853,7 @@
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
       "source_location": "L162",
       "id": "page_changemonth",
-      "community": 1
+      "community": 0
     },
     {
       "label": "handleExport()",
@@ -825,7 +861,7 @@
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
       "source_location": "L173",
       "id": "page_handleexport",
-      "community": 1
+      "community": 0
     },
     {
       "label": "handleExportDeptReport()",
@@ -833,7 +869,7 @@
       "source_file": "src\\app\\dashboard\\reports\\page.tsx",
       "source_location": "L207",
       "id": "page_handleexportdeptreport",
-      "community": 1
+      "community": 0
     },
     {
       "label": "Unauthorized Page",
@@ -925,7 +961,7 @@
       "author": null,
       "contributor": null,
       "id": "confirmdialog_component",
-      "community": 11
+      "community": 13
     },
     {
       "label": "DashboardHeader Component",
@@ -937,7 +973,7 @@
       "author": null,
       "contributor": null,
       "id": "dashboardheader_component",
-      "community": 6
+      "community": 9
     },
     {
       "label": "DataTable Component",
@@ -949,7 +985,7 @@
       "author": null,
       "contributor": null,
       "id": "datatable_component",
-      "community": 16
+      "community": 18
     },
     {
       "label": "DayDetailModal.tsx",
@@ -963,7 +999,7 @@
       "label": "getStatusBadge()",
       "file_type": "code",
       "source_file": "src\\components\\DayDetailModal.tsx",
-      "source_location": "L53",
+      "source_location": "L65",
       "id": "daydetailmodal_getstatusbadge",
       "community": 5
     },
@@ -977,19 +1013,39 @@
       "author": null,
       "contributor": null,
       "id": "editmodal_component",
-      "community": 11
+      "community": 13
     },
     {
-      "label": "Role-Based Access Control (admin/viewer)",
+      "label": "Sidebar.tsx",
       "file_type": "code",
-      "source_file": "src/components/Sidebar.tsx",
-      "source_location": "44-76",
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "id": "rbac_admin_viewer",
-      "community": 6
+      "source_file": "src\\components\\Sidebar.tsx",
+      "source_location": "L1",
+      "id": "sidebar",
+      "community": 8
+    },
+    {
+      "label": "loadProfile()",
+      "file_type": "code",
+      "source_file": "src\\components\\Sidebar.tsx",
+      "source_location": "L50",
+      "id": "sidebar_loadprofile",
+      "community": 8
+    },
+    {
+      "label": "handleLogout()",
+      "file_type": "code",
+      "source_file": "src\\components\\Sidebar.tsx",
+      "source_location": "L65",
+      "id": "sidebar_handlelogout",
+      "community": 8
+    },
+    {
+      "label": "isActive()",
+      "file_type": "code",
+      "source_file": "src\\components\\Sidebar.tsx",
+      "source_location": "L71",
+      "id": "sidebar_isactive",
+      "community": 8
     },
     {
       "label": "StatCard Component",
@@ -1001,7 +1057,7 @@
       "author": null,
       "contributor": null,
       "id": "statcard_component",
-      "community": 17
+      "community": 19
     },
     {
       "label": "types.ts",
@@ -1117,7 +1173,7 @@
       "author": null,
       "contributor": null,
       "id": "supabaseclient_createclient",
-      "community": 6
+      "community": 9
     },
     {
       "label": "Supabase Browser Singleton",
@@ -1129,7 +1185,7 @@
       "author": null,
       "contributor": null,
       "id": "supabaseclient_supabase",
-      "community": 6
+      "community": 9
     },
     {
       "label": "Supabase Server Client Factory",
@@ -1141,7 +1197,7 @@
       "author": null,
       "contributor": null,
       "id": "supabaseserver_createclient",
-      "community": 6
+      "community": 9
     }
   ],
   "links": [
@@ -2214,46 +2270,10 @@
       "target": "sidebar_component"
     },
     {
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/Sidebar.tsx",
-      "source_location": "22",
-      "weight": 1.0,
-      "_src": "sidebar_component",
-      "_tgt": "supabaseclient_createclient",
-      "source": "sidebar_component",
-      "target": "supabaseclient_createclient"
-    },
-    {
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/Sidebar.tsx",
-      "source_location": "44-76",
-      "weight": 1.0,
-      "_src": "sidebar_component",
-      "_tgt": "rbac_admin_viewer",
-      "source": "sidebar_component",
-      "target": "rbac_admin_viewer"
-    },
-    {
-      "relation": "shares_data_with",
-      "confidence": "INFERRED",
-      "confidence_score": 0.7,
-      "source_file": "src/components/Sidebar.tsx",
-      "source_location": null,
-      "weight": 0.7,
-      "_src": "sidebar_component",
-      "_tgt": "dashboardheader_component",
-      "source": "sidebar_component",
-      "target": "dashboardheader_component"
-    },
-    {
       "relation": "imports_from",
       "confidence": "EXTRACTED",
-      "source_file": "src\\app\\dashboard\\reports\\page.tsx",
-      "source_location": "L6",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L5",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "types",
@@ -2264,8 +2284,8 @@
     {
       "relation": "imports_from",
       "confidence": "EXTRACTED",
-      "source_file": "src\\app\\dashboard\\reports\\page.tsx",
-      "source_location": "L7",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L6",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "utils",
@@ -2312,8 +2332,8 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
-      "source_location": "L89",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L105",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_nameof",
@@ -2325,7 +2345,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
-      "source_location": "L91",
+      "source_location": "L93",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_codeof",
@@ -2336,8 +2356,68 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_deptnamebyid",
+      "source": "page",
+      "target": "page_deptnamebyid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
-      "source_location": "L112",
+      "source_location": "L99",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_deptof",
+      "source": "page",
+      "target": "page_deptof",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
+      "source_location": "L101",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_designationof",
+      "source": "page",
+      "target": "page_designationof",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_empidof",
+      "source": "page",
+      "target": "page_empidof",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
+      "source_location": "L107",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_cmpblanklast",
+      "source": "page",
+      "target": "page_cmpblanklast",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
+      "source_location": "L147",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_changedate",
@@ -2372,8 +2452,8 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L359",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L109",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_handlesave",
@@ -2384,8 +2464,8 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src\\app\\dashboard\\employees\\page.tsx",
-      "source_location": "L426",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L214",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_handledelete",
@@ -2584,6 +2664,18 @@
       "_tgt": "profile_page",
       "source": "admin_page_change_password",
       "target": "profile_page"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\attendance\\page.tsx",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_src": "page_deptof",
+      "_tgt": "page_deptnamebyid",
+      "source": "page_deptnamebyid",
+      "target": "page_deptof",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -2817,7 +2909,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\components\\DayDetailModal.tsx",
-      "source_location": "L53",
+      "source_location": "L65",
       "weight": 1.0,
       "_src": "daydetailmodal",
       "_tgt": "daydetailmodal_getstatusbadge",
@@ -2826,16 +2918,40 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "calls",
+      "relation": "contains",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/Sidebar.tsx",
-      "source_location": "49",
+      "source_file": "src\\components\\Sidebar.tsx",
+      "source_location": "L50",
       "weight": 1.0,
-      "_src": "rbac_admin_viewer",
-      "_tgt": "supabaseclient_createclient",
-      "source": "rbac_admin_viewer",
-      "target": "supabaseclient_createclient"
+      "_src": "sidebar",
+      "_tgt": "sidebar_loadprofile",
+      "source": "sidebar",
+      "target": "sidebar_loadprofile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\components\\Sidebar.tsx",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_src": "sidebar",
+      "_tgt": "sidebar_handlelogout",
+      "source": "sidebar",
+      "target": "sidebar_handlelogout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\components\\Sidebar.tsx",
+      "source_location": "L71",
+      "weight": 1.0,
+      "_src": "sidebar",
+      "_tgt": "sidebar_isactive",
+      "source": "sidebar",
+      "target": "sidebar_isactive",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",

@@ -23,7 +23,7 @@ export default function AttendancePage() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employeesById, setEmployeesById] = useState<
-    Record<number, { employee_name: string | null; employee_code: string | null; department_id: number | null }>
+    Record<number, { employee_name: string | null; employee_code: string | null; department_id: number | null; designation: string | null; emp_id: string | null }>
   >({});
   const [selectedDept, setSelectedDept] = useState("");
   const [search, setSearch] = useState("");
@@ -63,13 +63,15 @@ export default function AttendancePage() {
   const fetchEmployees = useCallback(async () => {
     const { data } = await supabase
       .from("employees")
-      .select("employee_id, employee_name, employee_code, department_id");
-    const map: Record<number, { employee_name: string | null; employee_code: string | null; department_id: number | null }> = {};
+      .select("employee_id, employee_name, employee_code, department_id, designation, emp_id");
+    const map: Record<number, { employee_name: string | null; employee_code: string | null; department_id: number | null; designation: string | null; emp_id: string | null }> = {};
     for (const e of data ?? []) {
       map[e.employee_id] = {
         employee_name: e.employee_name,
         employee_code: e.employee_code,
         department_id: e.department_id,
+        designation: e.designation,
+        emp_id: e.emp_id,
       };
     }
     setEmployeesById(map);
@@ -91,6 +93,24 @@ export default function AttendancePage() {
   const codeOf = (rec: AttendanceRecord) =>
     employeesById[rec.employee_id]?.employee_code ?? rec.employee_code ?? "";
 
+  // Store / Unit (department), designation, and emp id — used to group & sort the table.
+  const deptNameById = (id: number | null | undefined) =>
+    departments.find((d) => d.department_id === id)?.dept_name ?? "";
+  const deptOf = (rec: AttendanceRecord) =>
+    deptNameById(employeesById[rec.employee_id]?.department_id).trim();
+  const designationOf = (rec: AttendanceRecord) =>
+    (employeesById[rec.employee_id]?.designation ?? "").trim();
+  const empIdOf = (rec: AttendanceRecord) =>
+    (employeesById[rec.employee_id]?.emp_id ?? "").trim();
+
+  // Sort empty values (no dept / no designation / no emp id) last, otherwise natural order.
+  const cmpBlankLast = (a: string, b: string) => {
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+    return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+  };
+
   // Filter records
   const filteredRecords = records
     .filter((rec) => {
@@ -102,7 +122,22 @@ export default function AttendancePage() {
         codeOf(rec).toLowerCase().includes(q);
       return matchesDept && matchesSearch;
     })
-    .sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
+    // Order by Store/Unit, then designation, then emp id within each group.
+    .sort((a, b) =>
+      cmpBlankLast(deptOf(a), deptOf(b)) ||
+      cmpBlankLast(designationOf(a), designationOf(b)) ||
+      cmpBlankLast(empIdOf(a), empIdOf(b)) ||
+      nameOf(a).localeCompare(nameOf(b))
+    );
+
+  // Group the sorted records by Store/Unit (department) for section headers.
+  const groupedRecords: { key: string; dept: string; rows: AttendanceRecord[] }[] = [];
+  for (const rec of filteredRecords) {
+    const dept = deptOf(rec);
+    const last = groupedRecords[groupedRecords.length - 1];
+    if (last && last.key === dept) last.rows.push(rec);
+    else groupedRecords.push({ key: dept, dept, rows: [rec] });
+  }
 
   const presentCount = records.filter((r) => r.present && r.present > 0 && !r.is_on_leave).length;
   const leaveCount = records.filter((r) => r.is_on_leave).length;
@@ -381,7 +416,7 @@ export default function AttendancePage() {
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
                 <th className="px-4 py-3 font-medium">Employee</th>
-                <th className="px-4 py-3 font-medium">Code</th>
+                <th className="px-4 py-3 font-medium">Emp ID</th>
                 <th className="px-4 py-3 font-medium">In Time</th>
                 <th className="px-4 py-3 font-medium">Out Time</th>
                 <th className="px-4 py-3 font-medium">Duration</th>
@@ -392,11 +427,18 @@ export default function AttendancePage() {
                 <th className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredRecords.map((rec) => (
+            {groupedRecords.map((group) => (
+              <tbody key={group.key}>
+                <tr className="border-b border-slate-200 bg-slate-100/70">
+                  <td colSpan={10} className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <span className="text-slate-900">{group.dept || "No Store/Unit"}</span>
+                    <span className="ml-2 font-normal normal-case text-slate-400">({group.rows.length})</span>
+                  </td>
+                </tr>
+                {group.rows.map((rec) => (
                 <tr key={rec.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900">{nameOf(rec)}</td>
-                  <td className="px-4 py-3 text-slate-500">{codeOf(rec)}</td>
+                  <td className="px-4 py-3 text-slate-500">{empIdOf(rec) || "-"}</td>
                   <td className="px-4 py-3">{formatTime(rec.in_time)}</td>
                   <td className="px-4 py-3">{formatTime(rec.out_time)}</td>
                   <td className="px-4 py-3">{formatDuration(rec.duration)}</td>
@@ -443,8 +485,9 @@ export default function AttendancePage() {
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
+                ))}
+              </tbody>
+            ))}
           </table>
         )}
       </div>

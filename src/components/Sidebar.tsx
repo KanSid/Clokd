@@ -17,6 +17,7 @@ import {
   X,
   PartyPopper,
   UserCircle,
+  Laptop,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -25,6 +26,7 @@ const commonLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/employees", label: "Employees", icon: Users },
   { href: "/dashboard/attendance", label: "Attendance", icon: CalendarCheck },
+  { href: "/dashboard/wfh", label: "Work From Home", icon: Laptop },
   { href: "/dashboard/departments", label: "Departments", icon: Building2 },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard/holidays", label: "Holidays", icon: PartyPopper },

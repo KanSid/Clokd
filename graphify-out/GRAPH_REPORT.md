@@ -1,12 +1,12 @@
-# Graph Report - .  (2026-06-27)
+# Graph Report - .  (2026-07-01)
 
 ## Corpus Check
-- 37 files · ~27,816 words
+- 38 files · ~29,654 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 125 nodes · 158 edges · 18 communities detected
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.79)
+- 133 nodes · 163 edges · 20 communities detected
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## God Nodes (most connected - your core abstractions)
@@ -36,12 +36,12 @@
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.15
-Nodes (19): _coerce_date(), _coerce_dt(), connect_mdb(), latest_mdb(), load_env(), main(), POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn, Return the set of existing values for `column` (paged). (+11 more)
+Cohesion: 0.08
+Nodes (5): deptNameById(), deptOf(), fetchEmployees(), handleDelete(), handleSave()
 
 ### Community 1 - "Community 1"
-Cohesion: 0.09
-Nodes (3): fetchEmployees(), handleDelete(), handleSave()
+Cohesion: 0.15
+Nodes (19): _coerce_date(), _coerce_dt(), connect_mdb(), latest_mdb(), load_env(), main(), POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn, Return the set of existing values for `column` (paged). (+11 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.17
@@ -60,36 +60,36 @@ Cohesion: 0.22
 Nodes (0): 
 
 ### Community 6 - "Community 6"
-Cohesion: 0.38
-Nodes (7): Dashboard Layout (Sidebar wrapper), DashboardHeader Component, Role-Based Access Control (admin/viewer), Sidebar Component, Supabase Browser Client Factory, Supabase Browser Singleton, Supabase Server Client Factory
-
-### Community 7 - "Community 7"
 Cohesion: 0.33
 Nodes (6): Admin Activity from Edit Logs, renderJsonDiff (field-level diff viewer), Edit Logs Page (Audit Trail), Edit Logs Pagination (offset-based), Holiday Edit Log writes, Supabase Table: edit_logs
 
-### Community 8 - "Community 8"
+### Community 7 - "Community 7"
 Cohesion: 0.6
 Nodes (4): check(), load_env(), main(), Simulate an ADMS fingerprint scanner pushing data to the local dev server.  Ru
 
+### Community 8 - "Community 8"
+Cohesion: 0.5
+Nodes (0): 
+
 ### Community 9 - "Community 9"
-Cohesion: 1.0
-Nodes (2): Holidays Page (CRUD + year overview), Supabase Table: holidays
+Cohesion: 0.5
+Nodes (4): DashboardHeader Component, Supabase Browser Client Factory, Supabase Browser Singleton, Supabase Server Client Factory
 
 ### Community 10 - "Community 10"
 Cohesion: 1.0
-Nodes (2): Admin Change Password, Profile Page (change password)
+Nodes (2): Dashboard Layout (Sidebar wrapper), Sidebar Component
 
 ### Community 11 - "Community 11"
 Cohesion: 1.0
-Nodes (2): ConfirmDialog Component, EditModal Component
+Nodes (2): Holidays Page (CRUD + year overview), Supabase Table: holidays
 
 ### Community 12 - "Community 12"
 Cohesion: 1.0
-Nodes (1): Next.js Type References
+Nodes (2): Admin Change Password, Profile Page (change password)
 
 ### Community 13 - "Community 13"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ConfirmDialog Component, EditModal Component
 
 ### Community 14 - "Community 14"
 Cohesion: 1.0
@@ -97,42 +97,52 @@ Nodes (0):
 
 ### Community 15 - "Community 15"
 Cohesion: 1.0
-Nodes (1): Root Page (redirect to dashboard)
+Nodes (0): 
 
 ### Community 16 - "Community 16"
 Cohesion: 1.0
-Nodes (1): DataTable Component
+Nodes (0): 
 
 ### Community 17 - "Community 17"
+Cohesion: 1.0
+Nodes (1): Root Page (redirect to dashboard)
+
+### Community 18 - "Community 18"
+Cohesion: 1.0
+Nodes (1): DataTable Component
+
+### Community 19 - "Community 19"
 Cohesion: 1.0
 Nodes (1): StatCard Component
 
 ## Knowledge Gaps
-- **29 isolated node(s):** `Next.js Type References`, `POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn`, `Return the set of existing values for `column` (paged).`, `Return rows for `table` with the given select columns + optional filter (paged).`, `Insert NEW employees only. Existing employees are fully owned by Supabase —` (+24 more)
+- **30 isolated node(s):** `POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn`, `Return the set of existing values for `column` (paged).`, `Return rows for `table` with the given select columns + optional filter (paged).`, `Insert NEW employees only. Existing employees are fully owned by Supabase —`, `Flag active employees missing an emp_id or shift times. Such employees are     h` (+25 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 9`** (2 nodes): `Holidays Page (CRUD + year overview)`, `Supabase Table: holidays`
+- **Thin community `Community 10`** (2 nodes): `Dashboard Layout (Sidebar wrapper)`, `Sidebar Component`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 10`** (2 nodes): `Admin Change Password`, `Profile Page (change password)`
+- **Thin community `Community 11`** (2 nodes): `Holidays Page (CRUD + year overview)`, `Supabase Table: holidays`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 11`** (2 nodes): `ConfirmDialog Component`, `EditModal Component`
+- **Thin community `Community 12`** (2 nodes): `Admin Change Password`, `Profile Page (change password)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 12`** (1 nodes): `Next.js Type References`
+- **Thin community `Community 13`** (2 nodes): `ConfirmDialog Component`, `EditModal Component`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 13`** (1 nodes): `next.config.ts`
+- **Thin community `Community 14`** (1 nodes): `next-env.d.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 14`** (1 nodes): `layout.tsx`
+- **Thin community `Community 15`** (1 nodes): `next.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 15`** (1 nodes): `Root Page (redirect to dashboard)`
+- **Thin community `Community 16`** (1 nodes): `layout.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 16`** (1 nodes): `DataTable Component`
+- **Thin community `Community 17`** (1 nodes): `Root Page (redirect to dashboard)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 17`** (1 nodes): `StatCard Component`
+- **Thin community `Community 18`** (1 nodes): `DataTable Component`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 19`** (1 nodes): `StatCard Component`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **What connects `Next.js Type References`, `POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn`, `Return the set of existing values for `column` (paged).` to the rest of the system?**
-  _29 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.09 - nodes in this community are weakly interconnected._
+- **What connects `POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn`, `Return the set of existing values for `column` (paged).`, `Return rows for `table` with the given select columns + optional filter (paged).` to the rest of the system?**
+  _30 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Community 0` be split into smaller, more focused modules?**
+  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
