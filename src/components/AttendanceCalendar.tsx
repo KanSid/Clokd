@@ -107,6 +107,9 @@ export default function AttendanceCalendar({
       // MP = "Missed Punch": only one swipe recorded — incomplete day.
       const isMissedPunch = statusCode === "MP";
 
+      // WFH = worked from home (present, but shown distinctly in orange).
+      const isWfh = (rec?.work_mode ?? "").toUpperCase() === "WFH";
+
       // Only flag late/OT/early on full days
       const isLate       = isPresent && !isHalfDay && (rec?.late_by ?? 0) > 0;
       const isOvertime   = !isHalfDay && (rec?.overtime ?? 0) > 0 && (isPresent || isWop);
@@ -121,6 +124,8 @@ export default function AttendanceCalendar({
         status = "holiday-worked";
       } else if (isOnLeave) {
         status = "leave";
+      } else if (isWfh) {
+        status = "wfh";
       } else if (isMissedPunch) {
         status = "missed-punch";
       } else if (isHalfDay) {
@@ -155,6 +160,7 @@ export default function AttendanceCalendar({
   const getStatusStyle = (status: DayStatus): string => {
     switch (status) {
       case "present":           return "bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200";
+      case "wfh":               return "bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200";
       case "absent":
       case "leave":             return "bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200";
       case "half-day":
@@ -174,6 +180,7 @@ export default function AttendanceCalendar({
   const getStatusLabel = (info: DayInfo): string => {
     switch (info.status) {
       case "present":           return "P";
+      case "wfh":               return "WFH";
       case "absent":
       case "leave":             return "L";
       case "half-day":          return "HD";
@@ -208,7 +215,8 @@ export default function AttendanceCalendar({
   const stats = useMemo(() => {
     const validDays = dayInfos.filter((d): d is DayInfo => d !== null && d.status !== "future");
     return {
-      present:      validDays.filter((d) => ["present", "overtime", "late-and-overtime"].includes(d.status)).length,
+      present:      validDays.filter((d) => ["present", "wfh", "overtime", "late-and-overtime"].includes(d.status)).length,
+      wfh:          validDays.filter((d) => d.status === "wfh").length,
       late:         validDays.filter((d) => d.isLate).length,
       leave:        validDays.filter((d) => d.status === "leave" || d.status === "absent").length,
       halfDay:      validDays.filter((d) => ["half-day", "half-day-late", "half-day-early"].includes(d.status)).length,
@@ -238,6 +246,9 @@ export default function AttendanceCalendar({
       {/* Quick Stats Bar */}
       <div className="flex flex-wrap gap-2 border-b border-slate-100 px-6 py-3 text-xs">
         <span className="rounded-full bg-emerald-100 px-2.5 py-1 font-medium text-emerald-700">{stats.present} Present</span>
+        {stats.wfh > 0 && (
+          <span className="rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-700">{stats.wfh} WFH</span>
+        )}
         <span className="rounded-full bg-rose-100 px-2.5 py-1 font-medium text-rose-700">{stats.leave} Leave</span>
         <span className="rounded-full bg-orange-100 px-2.5 py-1 font-medium text-orange-700">{stats.halfDay} Half-Day</span>
         <span className="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">{stats.late} Late</span>
@@ -330,6 +341,7 @@ export default function AttendanceCalendar({
       <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-200 px-6 py-4">
         {[
           { color: "bg-emerald-200", label: "Present" },
+          { color: "bg-purple-200", label: "WFH" },
           { color: "bg-rose-200", label: "Leave" },
           { style: { background: "linear-gradient(to bottom, #bbf7d0 50%, #f8fafc 50%)" }, label: "HD (1st half)" },
           { style: { background: "linear-gradient(to bottom, #f8fafc 50%, #bbf7d0 50%)" }, label: "HD (2nd half)" },

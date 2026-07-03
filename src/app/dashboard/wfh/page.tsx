@@ -53,6 +53,8 @@ export default function WorkFromHomePage() {
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  // Set when the chosen date already has WFH record(s) — asks to confirm before saving.
+  const [confirmDay, setConfirmDay] = useState<{ date: string; names: string[] } | null>(null);
 
   const fetchEmployees = useCallback(async () => {
     const { data } = await supabase
@@ -187,6 +189,26 @@ export default function WorkFromHomePage() {
       setMessage({ kind: "err", text: "Please pick a date." });
       return;
     }
+
+    // If anyone is already marked WFH on this date, ask for confirmation first.
+    const { data: dayWfh } = await supabase
+      .from("attendance")
+      .select("employee_id")
+      .eq("work_mode", WORK_MODE)
+      .eq("attendance_date", form.attendance_date);
+
+    if (dayWfh && dayWfh.length > 0) {
+      const names = dayWfh.map(
+        (r) => empById[r.employee_id]?.employee_name ?? `#${r.employee_id}`,
+      );
+      setConfirmDay({ date: form.attendance_date, names });
+      return;
+    }
+
+    performSave();
+  };
+
+  const performSave = async () => {
     setSaving(true);
 
     const employeeId = Number(form.employee_id);
@@ -578,6 +600,49 @@ export default function WorkFromHomePage() {
           </div>
         </div>
       </div>
+
+      {/* Duplicate-day confirmation */}
+      {confirmDay !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-900">Already Working From Home</h3>
+              <button onClick={() => setConfirmDay(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-slate-600">
+              {confirmDay.names.length} {confirmDay.names.length === 1 ? "employee is" : "employees are"} already
+              marked as working from home on {formatDate(confirmDay.date)}:
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {confirmDay.names.map((n, i) => (
+                <span key={i} className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                  {n}
+                </span>
+              ))}
+            </div>
+            <p className="mt-3 text-sm text-slate-600">Do you want to proceed?</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDay(null)}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmDay(null);
+                  performSave();
+                }}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              >
+                Proceed
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete confirmation */}
       {deletingId !== null && (

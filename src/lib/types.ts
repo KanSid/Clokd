@@ -92,6 +92,7 @@ export interface Holiday {
 
 export type DayStatus =
   | 'present'
+  | 'wfh'
   | 'absent'
   | 'leave'
   | 'half-day'
