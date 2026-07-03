@@ -4,9 +4,10 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { AttendanceRecord, Department } from "@/lib/types";
 import { formatTime, formatDate } from "@/lib/utils";
-import { Laptop, Trash2, X, Search, Check } from "lucide-react";
+import { Laptop, Trash2, X, Search, Check, ChevronLeft, ChevronRight } from "lucide-react";
 
 const WORK_MODE = "WFH";
+const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // WFH is recorded as a standard 10:00-19:00 working day (no manual time entry).
 // The whole system stores IST wall-clock time labelled as UTC (e.g. 10:00 IST is
@@ -36,6 +37,11 @@ export default function WorkFromHomePage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Aggregate WFH calendar (who's working from home each day of the month).
+  const [calYear, setCalYear] = useState(now.getFullYear());
+  const [calMonth, setCalMonth] = useState(now.getMonth() + 1); // 1-12
+  const [monthRecords, setMonthRecords] = useState<AttendanceRecord[]>([]);
 
   const [empSearch, setEmpSearch] = useState("");
   const [empOpen, setEmpOpen] = useState(false);
@@ -77,11 +83,28 @@ export default function WorkFromHomePage() {
     setLoading(false);
   }, []);
 
+  const fetchMonth = useCallback(async () => {
+    const dim = new Date(calYear, calMonth, 0).getDate();
+    const mm = String(calMonth).padStart(2, "0");
+    const { data } = await supabase
+      .from("attendance")
+      .select("*")
+      .eq("work_mode", WORK_MODE)
+      .gte("attendance_date", `${calYear}-${mm}-01`)
+      .lte("attendance_date", `${calYear}-${mm}-${String(dim).padStart(2, "0")}`)
+      .order("attendance_date");
+    setMonthRecords(data ?? []);
+  }, [calYear, calMonth]);
+
   useEffect(() => {
     fetchEmployees();
     fetchDepartments();
     fetchRecords();
   }, [fetchEmployees, fetchDepartments, fetchRecords]);
+
+  useEffect(() => {
+    fetchMonth();
+  }, [fetchMonth]);
 
   const empById = useMemo(() => {
     const m: Record<number, EmployeeOption> = {};
@@ -114,6 +137,44 @@ export default function WorkFromHomePage() {
     setForm((f) => ({ ...f, employee_id: String(e.employee_id) }));
     setEmpSearch(empLabel(e));
     setEmpOpen(false);
+  };
+
+  // WFH records grouped by day, for the calendar cells.
+  const wfhByDate = useMemo(() => {
+    const m: Record<string, AttendanceRecord[]> = {};
+    for (const r of monthRecords) {
+      if (!r.attendance_date) continue;
+      (m[r.attendance_date] ??= []).push(r);
+    }
+    return m;
+  }, [monthRecords]);
+
+  const calendarCells = useMemo(() => {
+    const dim = new Date(calYear, calMonth, 0).getDate();
+    const firstDow = new Date(calYear, calMonth - 1, 1).getDay();
+    const mm = String(calMonth).padStart(2, "0");
+    const cells: ({ day: number; dateStr: string } | null)[] = [];
+    for (let i = 0; i < firstDow; i++) cells.push(null);
+    for (let d = 1; d <= dim; d++) {
+      cells.push({ day: d, dateStr: `${calYear}-${mm}-${String(d).padStart(2, "0")}` });
+    }
+    const remainder = cells.length % 7;
+    if (remainder !== 0) cells.push(...Array(7 - remainder).fill(null));
+    return cells;
+  }, [calYear, calMonth]);
+
+  const monthLabel = new Date(calYear, calMonth - 1).toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
+
+  const prevMonth = () => {
+    if (calMonth === 1) { setCalYear((y) => y - 1); setCalMonth(12); }
+    else setCalMonth((m) => m - 1);
+  };
+  const nextMonth = () => {
+    if (calMonth === 12) { setCalYear((y) => y + 1); setCalMonth(1); }
+    else setCalMonth((m) => m + 1);
   };
 
   const handleSave = async () => {
@@ -220,6 +281,7 @@ export default function WorkFromHomePage() {
     setEmpOpen(false);
     setMessage({ kind: "ok", text: "Work From Home record saved." });
     fetchRecords();
+    fetchMonth();
   };
 
   const handleDelete = async () => {
@@ -245,6 +307,7 @@ export default function WorkFromHomePage() {
     }
     setDeletingId(null);
     fetchRecords();
+    fetchMonth();
   };
 
   const selectedEmp = form.employee_id ? empById[Number(form.employee_id)] : null;
@@ -420,6 +483,99 @@ export default function WorkFromHomePage() {
               </table>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* WFH Calendar — who's working from home each day */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <button
+            onClick={prevMonth}
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="text-center">
+            <h2 className="text-lg font-bold text-slate-900">{monthLabel}</h2>
+            <p className="text-xs text-slate-500">
+              {monthRecords.length} work-from-home {monthRecords.length === 1 ? "day" : "days"}
+            </p>
+          </div>
+          <button
+            onClick={nextMonth}
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="p-4 sm:p-6">
+          <div className="grid grid-cols-7 gap-1.5">
+            {DAYS_OF_WEEK.map((d) => (
+              <div
+                key={d}
+                className={`py-2 text-center text-xs font-bold uppercase tracking-wider ${
+                  d === "Sun" ? "text-red-500" : "text-slate-500"
+                }`}
+              >
+                {d}
+              </div>
+            ))}
+
+            {calendarCells.map((cell, idx) => {
+              if (!cell) return <div key={`pad-${idx}`} className="min-h-[6rem]" />;
+              const dayRecs = wfhByDate[cell.dateStr] ?? [];
+              const isToday = cell.dateStr === today;
+              const isFuture = cell.dateStr > today;
+              const isSelected = form.attendance_date === cell.dateStr;
+              return (
+                <div
+                  key={cell.dateStr}
+                  onClick={() => {
+                    if (!isFuture) setForm((f) => ({ ...f, attendance_date: cell.dateStr }));
+                  }}
+                  title={isFuture ? undefined : "Click to set this date in the form above"}
+                  className={`flex min-h-[6rem] flex-col rounded-lg border p-1.5 transition-colors ${
+                    dayRecs.length ? "border-indigo-200 bg-indigo-50/40" : "border-slate-100 bg-white"
+                  } ${isFuture ? "opacity-50" : "cursor-pointer hover:border-indigo-300"} ${
+                    isToday ? "ring-2 ring-indigo-500 ring-offset-1" : ""
+                  } ${isSelected ? "border-indigo-400" : ""}`}
+                >
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className={`text-[11px] font-semibold ${isToday ? "text-indigo-700" : "text-slate-400"}`}>
+                      {cell.day}
+                    </span>
+                    {dayRecs.length > 0 && (
+                      <span className="rounded-full bg-indigo-600 px-1.5 text-[10px] font-bold leading-4 text-white">
+                        {dayRecs.length}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-0.5">
+                    {dayRecs.slice(0, 4).map((rec) => (
+                      <div
+                        key={rec.id}
+                        className="flex items-center gap-1 rounded bg-white px-1 py-0.5 shadow-sm"
+                      >
+                        <Laptop className="h-2.5 w-2.5 flex-shrink-0 text-indigo-500" />
+                        <span
+                          className="truncate text-[10px] font-medium text-slate-700"
+                          title={nameOf(rec)}
+                        >
+                          {nameOf(rec)}
+                        </span>
+                      </div>
+                    ))}
+                    {dayRecs.length > 4 && (
+                      <div className="px-1 text-[10px] font-medium text-indigo-600">
+                        +{dayRecs.length - 4} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

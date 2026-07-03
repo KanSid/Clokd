@@ -579,7 +579,7 @@
       "label": "nameOf()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L105",
+      "source_location": "L129",
       "id": "page_nameof",
       "community": 0
     },
@@ -595,7 +595,7 @@
       "label": "deptNameById()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L91",
+      "source_location": "L115",
       "id": "page_deptnamebyid",
       "community": 0
     },
@@ -619,7 +619,7 @@
       "label": "empIdOf()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L107",
+      "source_location": "L131",
       "id": "page_empidof",
       "community": 0
     },
@@ -659,7 +659,7 @@
       "label": "handleSave()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L109",
+      "source_location": "L180",
       "id": "page_handlesave",
       "community": 0
     },
@@ -667,7 +667,7 @@
       "label": "handleDelete()",
       "file_type": "code",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L214",
+      "source_location": "L287",
       "id": "page_handledelete",
       "community": 0
     },
@@ -882,6 +882,38 @@
       "contributor": null,
       "id": "unauthorized_page",
       "community": 2
+    },
+    {
+      "label": "empLabel()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L133",
+      "id": "page_emplabel",
+      "community": 0
+    },
+    {
+      "label": "selectEmployee()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L136",
+      "id": "page_selectemployee",
+      "community": 0
+    },
+    {
+      "label": "prevMonth()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L171",
+      "id": "page_prevmonth",
+      "community": 0
+    },
+    {
+      "label": "nextMonth()",
+      "file_type": "code",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L175",
+      "id": "page_nextmonth",
+      "community": 0
     },
     {
       "label": "Login Page (email/password)",
@@ -2333,7 +2365,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L105",
+      "source_location": "L129",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_nameof",
@@ -2357,7 +2389,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L91",
+      "source_location": "L115",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_deptnamebyid",
@@ -2393,7 +2425,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L107",
+      "source_location": "L131",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_empidof",
@@ -2453,7 +2485,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L109",
+      "source_location": "L180",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_handlesave",
@@ -2465,7 +2497,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
-      "source_location": "L214",
+      "source_location": "L287",
       "weight": 1.0,
       "_src": "page",
       "_tgt": "page_handledelete",
@@ -2642,6 +2674,54 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L133",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_emplabel",
+      "source": "page",
+      "target": "page_emplabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L136",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_selectemployee",
+      "source": "page",
+      "target": "page_selectemployee",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L171",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_prevmonth",
+      "source": "page",
+      "target": "page_prevmonth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L175",
+      "weight": 1.0,
+      "_src": "page",
+      "_tgt": "page_nextmonth",
+      "source": "page",
+      "target": "page_nextmonth",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -2760,6 +2840,18 @@
       "_tgt": "supabase_table_holidays",
       "source": "holidays_page",
       "target": "supabase_table_holidays"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src\\app\\dashboard\\wfh\\page.tsx",
+      "source_location": "L138",
+      "weight": 1.0,
+      "_src": "page_selectemployee",
+      "_tgt": "page_emplabel",
+      "source": "page_emplabel",
+      "target": "page_selectemployee",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",

@@ -1,11 +1,11 @@
-# Graph Report - .  (2026-07-01)
+# Graph Report - .  (2026-07-03)
 
 ## Corpus Check
-- 38 files · ~29,654 words
+- 38 files · ~30,341 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 133 nodes · 163 edges · 20 communities detected
+- 137 nodes · 168 edges · 20 communities detected
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
@@ -36,8 +36,8 @@
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.08
-Nodes (5): deptNameById(), deptOf(), fetchEmployees(), handleDelete(), handleSave()
+Cohesion: 0.07
+Nodes (7): deptNameById(), deptOf(), empLabel(), fetchEmployees(), handleDelete(), handleSave(), selectEmployee()
 
 ### Community 1 - "Community 1"
 Cohesion: 0.15
@@ -145,4 +145,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `POLL the latest sorted by time eTimeTrackLite .mdb file in the repo root and syn`, `Return the set of existing values for `column` (paged).`, `Return rows for `table` with the given select columns + optional filter (paged).` to the rest of the system?**
   _30 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07 - nodes in this community are weakly interconnected._
