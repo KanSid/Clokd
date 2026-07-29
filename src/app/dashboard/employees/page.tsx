@@ -65,7 +65,7 @@ function EditModal({
     setSaving(true);
     setError(null);
     try {
-      await onSave(form);
+      await onSave({ ...form, emp_id: form.emp_id?.trim() ? form.emp_id.trim() : null });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save employee.");
@@ -115,7 +115,6 @@ function EditModal({
             </label>
             <input
               type="text"
-              required
               value={form.emp_id ?? ""}
               onChange={(e) => setForm({ ...form, emp_id: e.target.value })}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
